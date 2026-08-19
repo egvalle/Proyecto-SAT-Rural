@@ -1,0 +1,6 @@
+@SatRural.Api_HostAddress = http://localhost:5053
+
+GET {{SatRural.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

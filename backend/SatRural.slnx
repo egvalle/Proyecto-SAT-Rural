@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SatRural.Api/SatRural.Api.csproj" />
+  <Project Path="SatRural.Application/SatRural.Application.csproj" />
+  <Project Path="SatRural.Domain/SatRural.Domain.csproj" />
+  <Project Path="SatRural.Infrastructure/SatRural.Infrastructure.csproj" />
+</Solution>
