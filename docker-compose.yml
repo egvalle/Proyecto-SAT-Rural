@@ -15,5 +15,26 @@ services:
 
     restart: unless-stopped
 
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: sat-rural-api
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=${MSSQL_DATABASE};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      - sqlserver
+
+    restart: unless-stopped
+
 volumes:
   sqlserver-data:
