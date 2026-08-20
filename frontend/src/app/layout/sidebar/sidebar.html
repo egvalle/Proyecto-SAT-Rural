@@ -1,0 +1,88 @@
+<aside
+  class="sidebar"
+  [class.open]="open">
+
+  <div class="brand">
+
+    <div class="brand-icon">
+    <i class="bi bi-cloud-fill"></i>
+    </div>
+
+    <div>
+      <strong>Comunidad Rural</strong>
+      <span>Alerta Temprana</span>
+    </div>
+
+    <button
+        type="button"
+        class="sidebar-close"
+        aria-label="Cerrar menú"
+        (click)="close()">
+
+        <i class="bi bi-x-lg"></i>
+
+    </button>
+
+  </div>
+
+  <nav>
+
+    <p class="section-title">MONITOREO</p>
+
+    <a routerLink="/dashboard" routerLinkActive="active" (click)="close()">
+      <i class="bi bi-grid-1x2-fill"></i>
+      Dashboard
+    </a>
+
+    <a routerLink="/sensors" routerLinkActive="active" (click)="close()">
+    <i class="bi bi-broadcast-pin"></i>
+    Sensores
+    </a>
+
+    <a routerLink="/alerts" routerLinkActive="active" (click)="close()">
+    <i class="bi bi-exclamation-triangle"></i>
+    Alertas
+    </a>
+
+    <a routerLink="/history" routerLinkActive="active" (click)="close()">
+    <i class="bi bi-clock-history"></i>
+    Historial
+    </a>
+
+    <a routerLink="/communities" routerLinkActive="active" (click)="close()">
+    <i class="bi bi-geo-alt"></i>
+    Comunidades
+    </a>
+
+    <p class="section-title admin-title">
+      ADMINISTRACIÓN
+    </p>
+
+    <a routerLink="/settings" routerLinkActive="active" (click)="close()">
+    <i class="bi bi-gear"></i>
+    Configuración
+    </a>
+
+    <a routerLink="/users" routerLinkActive="active" (click)="close()">
+    <i class="bi bi-people"></i>
+    Usuarios
+    </a>
+
+    <a routerLink="/audit-log" routerLinkActive="active" (click)="close()">
+    <i class="bi bi-list-check"></i>
+    Bitácora
+    </a>
+
+  </nav>
+
+  <div class="sidebar-footer">
+
+    <strong>Comunidad El Pinar</strong>
+
+    <span>
+      Sistema conectado · 5 sensores activos
+    </span>
+
+  </div>
+
+</aside>

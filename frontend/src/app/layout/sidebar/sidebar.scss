@@ -1,0 +1,309 @@
+.sidebar {
+  width: 260px;
+  height: 100vh;
+
+  position: sticky;
+  top: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 1.5rem 1rem;
+
+  background: #104b45;
+  color: #ffffff;
+
+  z-index: 1000;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+
+/* =========================
+   Marca
+   ========================= */
+
+.brand {
+  display: flex;
+  align-items: center;
+
+  gap: 0.8rem;
+
+  margin-bottom: 2rem;
+}
+
+.brand-icon {
+  width: 48px;
+  height: 48px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 13px;
+
+  background: #17655d;
+
+  font-size: 1.35rem;
+}
+
+.brand-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.brand strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.brand span {
+  display: block;
+
+  margin-top: 0.2rem;
+
+  color: #a8d6cf;
+
+  font-size: 0.75rem;
+}
+
+.sidebar-close {
+  display: none;
+
+  width: 36px;
+  height: 36px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 8px;
+
+  background: transparent;
+  color: #ffffff;
+
+  font-size: 1.05rem;
+
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-close:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+}
+
+
+/* =========================
+   Navegación
+   ========================= */
+
+nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-title {
+  margin: 1rem 0 0.5rem;
+
+  padding: 0 0.6rem;
+
+  color: #8fc5bd;
+
+  font-size: 0.72rem;
+  font-weight: 600;
+
+  letter-spacing: 0.08em;
+}
+
+.admin-title {
+  margin-top: 1.5rem;
+}
+
+nav a {
+  display: flex;
+  align-items: center;
+
+  gap: 0.7rem;
+
+  margin-bottom: 0.25rem;
+
+  padding: 0.8rem 0.9rem;
+
+  border-radius: 11px;
+
+  color: #e8f4f2;
+
+  text-decoration: none;
+
+  font-size: 0.92rem;
+  font-weight: 500;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+nav a i {
+  width: 20px;
+
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1rem;
+}
+
+nav a:hover {
+  background: #175c55;
+  color: #ffffff;
+}
+
+nav a:active {
+  transform: translateY(1px);
+}
+
+nav a.active {
+  background: #1c6860;
+  color: #ffffff;
+}
+
+nav a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.4);
+  outline-offset: 2px;
+}
+
+
+/* =========================
+   Footer
+   ========================= */
+
+.sidebar-footer {
+  margin-top: auto;
+
+  padding: 1rem 0.6rem 0;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.sidebar-footer strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.sidebar-footer span {
+  display: block;
+
+  margin-top: 0.25rem;
+
+  color: #b4d7d2;
+
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+
+/* =========================
+   Scrollbar
+   ========================= */
+
+.sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: #2a6e67 transparent;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #2a6e67;
+
+  border-radius: 10px;
+}
+
+
+/* =========================
+   Responsive
+   ========================= */
+
+@media (max-width: 900px) {
+
+  .sidebar {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    height: 100vh;
+
+    transform: translateX(-100%);
+
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.16);
+
+    transition: transform 0.25s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close {
+    display: inline-grid;
+    place-items: center;
+  }
+}
+
+
+/* =========================
+   Teléfonos pequeños
+   ========================= */
+
+@media (max-width: 420px) {
+
+  .sidebar {
+    width: min(280px, 86vw);
+
+    padding: 1.25rem 0.85rem;
+  }
+
+  .brand {
+    margin-bottom: 1.5rem;
+  }
+
+  .brand-icon {
+    width: 44px;
+    height: 44px;
+
+    border-radius: 12px;
+  }
+
+  nav a {
+    padding: 0.75rem 0.8rem;
+
+    font-size: 0.88rem;
+  }
+}
