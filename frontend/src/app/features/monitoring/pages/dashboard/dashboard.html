@@ -1,1 +1,99 @@
-<p>dashboard works!</p>
+<div class="dashboard">
+
+  <!-- Estado general -->
+  <app-system-status />
+
+
+  <!-- Indicadores -->
+  <section class="row g-3">
+
+    <div class="col-12 col-sm-6 col-lg-4 col-xl">
+
+      <app-sensor-card
+        title="Temperatura"
+        [value]="27.4"
+        unit="°C"
+        icon="bi bi-thermometer-half"
+        status="Dentro del rango normal"
+        statusClass="normal">
+      </app-sensor-card>
+
+    </div>
+
+
+    <div class="col-12 col-sm-6 col-lg-4 col-xl">
+
+      <app-sensor-card
+        title="Humedad relativa"
+        [value]="74"
+        unit="%"
+        icon="bi bi-droplet-fill"
+        status="Condición estable"
+        statusClass="normal">
+      </app-sensor-card>
+
+    </div>
+
+
+    <div class="col-12 col-sm-6 col-lg-4 col-xl">
+
+      <app-sensor-card
+        title="Velocidad del viento"
+        [value]="16"
+        unit="km/h"
+        icon="bi bi-wind"
+        status="Velocidad moderada"
+        statusClass="normal">
+      </app-sensor-card>
+
+    </div>
+
+
+    <div class="col-12 col-sm-6 col-lg-4 col-xl">
+
+      <app-sensor-card
+        title="Nivel de lluvia"
+        [value]="3.2"
+        unit="mm/h"
+        icon="bi bi-cloud-rain-heavy"
+        status="Precipitación ligera"
+        statusClass="normal">
+      </app-sensor-card>
+
+    </div>
+
+
+    <div class="col-12 col-sm-6 col-lg-4 col-xl">
+
+      <app-sensor-card
+        title="Nivel del río"
+        [value]="42"
+        unit="%"
+        icon="bi bi-water"
+        status="Nivel seguro"
+        statusClass="normal">
+      </app-sensor-card>
+
+    </div>
+
+  </section>
+
+
+  <!-- Gráfico + alertas -->
+  <section class="row g-3">
+
+    <div class="col-12 col-xl-8">
+
+      <app-sensor-chart />
+
+    </div>
+
+    <div class="col-12 col-xl-4">
+
+      <app-recent-alerts />
+
+    </div>
+
+  </section>
+
+</div>

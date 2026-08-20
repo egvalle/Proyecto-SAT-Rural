@@ -1,0 +1,19 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+
+  gap: 1.25rem;
+}
+
+app-system-status,
+app-sensor-card,
+app-sensor-chart,
+app-recent-alerts {
+  display: block;
+}
+
+app-sensor-card,
+app-sensor-chart,
+app-recent-alerts {
+  height: 100%;
+}

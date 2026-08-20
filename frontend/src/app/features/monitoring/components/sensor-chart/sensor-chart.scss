@@ -1,0 +1,99 @@
+.chart-panel {
+  background: #ffffff;
+
+  border: 1px solid #e5e9ed;
+  border-radius: 16px;
+
+  box-shadow: 0 6px 20px rgba(20, 35, 45, 0.05);
+
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 1.15rem 1.25rem;
+
+  border-bottom: 1px solid #e5e9ed;
+}
+
+.panel-header h3 {
+  color: #18212b;
+
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.panel-header p {
+  color: #88939d;
+
+  font-size: 0.72rem;
+}
+
+.chart-container {
+  position: relative;
+
+  width: 100%;
+  height: 320px;
+
+  padding: 1.25rem;
+}
+
+.chart-options {
+  width: 36px;
+  height: 36px;
+
+  display: grid;
+  place-items: center;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #f4f7f9;
+  color: #718096;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.chart-options:hover {
+  background: #e9f1f0;
+  color: #176b61;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+
+  gap: 0.4rem;
+
+  padding: 0.4rem 0.65rem;
+
+  border-radius: 999px;
+
+  background: #eaf7ef;
+  color: #268a53;
+
+  font-size: 0.68rem;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.live-indicator i {
+  font-size: 0.4rem;
+}
+
+@media (max-width: 575.98px) {
+
+  .chart-container {
+    height: 280px;
+
+    padding: 1rem;
+  }
+}
