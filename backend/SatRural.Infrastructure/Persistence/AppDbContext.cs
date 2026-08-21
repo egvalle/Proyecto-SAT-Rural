@@ -9,5 +9,8 @@ public class AppDbContext : DbContext
         : base(options)
     {
     }
+    
     public DbSet<Community> Communities => Set<Community>();
+    public DbSet<Alert> Alerts => Set<Alert>();
+    public DbSet<AlertRule> AlertRules => Set<AlertRule>();
 }
