@@ -22,7 +22,7 @@
       'justify-start': (isExpanded$ | async) || (isHovered$ | async)
     }"
   >
-    <!-- <a routerLink="/">
+    <a routerLink="/">
       @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
       <img
         class="dark:hidden"
@@ -41,7 +41,7 @@
       } @else {
       <img src="/images/logo/logo-icon.svg" alt="Logo" width="32" height="32" />
       }
-    </a> -->
+    </a>
   </div>
 
   <div class="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
@@ -215,7 +215,6 @@
                 <a
                   [routerLink]="nav.path"
                   routerLinkActive="menu-item-active"
-                  [routerLinkActiveOptions]="{ exact: nav.path === '/' }"
                   class="menu-item group"
                   [ngClass]="{ 'menu-item-inactive': !isActive(nav.path) }"
                 >
@@ -283,7 +282,7 @@
             }
           </h2>
 
-          <!-- <ul class="flex flex-col gap-1">
+          <ul class="flex flex-col gap-1">
             @for (nav of othersItems; track $index;let i = $index) {
             <li>
               @if (nav.subItems) {
@@ -408,6 +407,7 @@
                               )
                             }"
                           >
+                            pro
                           </span>
                           }
                         </span>
@@ -445,7 +445,7 @@
               }
             </li>
             }
-          </ul> -->
+          </ul>
         </div>
         <!-- end other section -->
       </div>
