@@ -1,11 +1,11 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { SidebarService } from '../../../../shared/services/sidebar.service';
 import { RouterModule} from '@angular/router';
-import { DashboardNavbarComponent } from './dashboard-navbar/dashboard-navbar.component';
+import { SidebarService } from '../shared/services/sidebar.service';
+import { DashboardNavbarComponent } from '../features/monitoring/pages/dashboard/dashboard-navbar/dashboard-navbar.component';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-home',
   imports: [
     RouterModule,
     DashboardNavbarComponent,
@@ -14,10 +14,10 @@ import { DashboardNavbarComponent } from './dashboard-navbar/dashboard-navbar.co
     // BackdropComponent,
     // AppHeaderComponent,
 ],
-  templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss',
+  templateUrl: './home.html',
+  styleUrl: './home.scss',
 })
-export class Dashboard {
+export class Home {
   isApplicationMenuOpen = false;
   readonly isMobileOpen$;
   readonly isHovered$;

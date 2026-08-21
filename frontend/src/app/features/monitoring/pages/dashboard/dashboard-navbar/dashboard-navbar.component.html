@@ -1,0 +1,23 @@
+<nav class="navbar bg-body-tertiary">
+  <div class="container-fluid">
+    <div class="d-flex align-items-center gap-2">
+      <button
+        class="navbar-toggler"
+        type="button"
+        aria-label="Abrir menú"
+        [attr.aria-expanded]="menuOpen"
+        (click)="toggleMenu()"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <a class="navbar-brand">SAT Rural</a>
+    </div>
+
+    @if (!hideComponents) {
+      <form class="d-flex" role="search">
+        <button routerLink="/login" class="btn btn-outline-success" type="button">Login</button>
+      </form>
+    }
+  </div>
+</nav>
+
