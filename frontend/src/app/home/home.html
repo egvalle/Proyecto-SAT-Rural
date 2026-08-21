@@ -1,1 +1,59 @@
-<app-dashboard-navbar></app-dashboard-navbar>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Panel de inspiracion y progreso personal.">
+  <title>Nexo | Tu espacio de enfoque</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="home.scss">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <a class="brand" routerLink="/" aria-label="SAT Rural, ir al inicio">
+        <span class="brand-mark">N</span>
+        <span>SAT Rural</span>
+      </a>
+
+      <nav class="main-nav" id="main-nav" aria-label="Navegacion principal">
+        <a class="nav-link" routerLink="/login">Iniciar sesion</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-button" type="button" aria-label="Buscar" title="Buscar">⌕</button>
+        <button class="profile-button" type="button" aria-label="Abrir perfil">AL</button>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav" aria-label="Abrir menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <main id="inicio">
+      <section class="hero-section" aria-labelledby="welcome-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-dot"></span> MARTES, 21 DE AGOSTO</p>
+          <h1 id="welcome-title">SAT Rural<br><em>control en cada parcela.</em></h1>
+          <p class="hero-description">Monitorea tus sensores, consulta alertas y toma decisiones oportunas para mantener tu produccion bajo control.</p>
+          <a class="primary-button" routerLink="/login">Ingresar al sistema <span>↗</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="sun"></div>
+          <div class="art-label label-top">IDEAS<br><strong>EN MOVIMIENTO</strong></div>
+          <div class="art-label label-bottom">01 / 04</div>
+        </div>
+      </section>
+
+  
+    </main>
+
+    <footer class="site-footer"><span>© 2026 NEXO</span><span>Disena tu propio ritmo <b>↗</b></span></footer>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite">Tu nuevo proyecto esta listo para empezar.</div>
+  <script src="home.js"></script>
+</body>
+</html>

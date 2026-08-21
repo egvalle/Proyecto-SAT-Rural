@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { Dashboard } from './features/monitoring/pages/dashboard/dashboard';
 import { Login } from './features/administration/pages/login/login';
+import { Sensors } from './features/administration/pages/sensors/sensors';
 import { Home } from './home/home';
 
 export const routes: Routes = [
@@ -11,20 +12,18 @@ export const routes: Routes = [
     title: 'Home',
   },
   {
-    path: 'login',
-    component: Login,
-    title: 'Login',
-  },
-   {
     path: 'dashboard',
     component: Dashboard,
     title: 'Dashboard',
   },
   {
+    path: 'login',
+    component: Login,
+    title: 'Login',
+  },
+  {
     path: 'sensors',
-    loadComponent: () =>
-      import('./features/administration/pages/sensors/sensors')
-        .then(m => m.Sensors),
+    component: Sensors,
     title: 'Sensors',
   },
   // {

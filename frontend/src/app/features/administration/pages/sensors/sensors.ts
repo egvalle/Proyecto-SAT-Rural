@@ -1,12 +1,10 @@
 import { Component } from '@angular/core';
-import { ComponentCardComponent } from '../../../..//../app/shared/components/component-card/component-card.component';
-
+import {} from '../../../../shared/components/component-card/component-card.component'
+import { ComponentCardComponent } from "../../../../shared/component-card/component-card.component";
 
 @Component({
   selector: 'app-sensors',
-  imports: [
-    ComponentCardComponent
-  ],
+  imports: [ComponentCardComponent],
   templateUrl: './sensors.html',
   styleUrl: './sensors.scss',
 })
