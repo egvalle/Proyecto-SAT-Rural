@@ -1,99 +1,134 @@
-<div class="dashboard">
+@if (loading) {
 
-  <!-- Estado general -->
-  <app-system-status />
+  <div
+    class="d-flex
+           align-items-center
+           justify-content-center
+           py-5">
 
+    <div
+      class="spinner-border text-success"
+      role="status">
 
-  <!-- Indicadores -->
-  <section class="row g-3">
-
-    <div class="col-12 col-sm-6 col-lg-4 col-xl">
-
-      <app-sensor-card
-        title="Temperatura"
-        [value]="27.4"
-        unit="°C"
-        icon="bi bi-thermometer-half"
-        status="Dentro del rango normal"
-        statusClass="normal">
-      </app-sensor-card>
+      <span class="visually-hidden">
+        Cargando...
+      </span>
 
     </div>
 
+  </div>
 
-    <div class="col-12 col-sm-6 col-lg-4 col-xl">
+}
+@else if (error) {
 
-      <app-sensor-card
-        title="Humedad relativa"
-        [value]="74"
-        unit="%"
-        icon="bi bi-droplet-fill"
-        status="Condición estable"
-        statusClass="normal">
-      </app-sensor-card>
+  <div
+    class="alert alert-danger"
+    role="alert">
 
-    </div>
+    <i class="bi bi-exclamation-triangle me-2"></i>
 
+    No fue posible obtener la información
+    del sistema de monitoreo.
 
-    <div class="col-12 col-sm-6 col-lg-4 col-xl">
+  </div>
 
-      <app-sensor-card
-        title="Velocidad del viento"
-        [value]="16"
-        unit="km/h"
-        icon="bi bi-wind"
-        status="Velocidad moderada"
-        statusClass="normal">
-      </app-sensor-card>
+}
+@else if (dashboard) {
 
-    </div>
+  <div class="dashboard">
 
+    <app-system-status
+      [title]="'Estado general: ' + dashboard.status"
+      [description]="dashboard.statusMessage"
+      [updatedAt]="dashboard.updatedAt">
+    </app-system-status>
 
-    <div class="col-12 col-sm-6 col-lg-4 col-xl">
+    <section class="row g-3">
 
-      <app-sensor-card
-        title="Nivel de lluvia"
-        [value]="3.2"
-        unit="mm/h"
-        icon="bi bi-cloud-rain-heavy"
-        status="Precipitación ligera"
-        statusClass="normal">
-      </app-sensor-card>
+      <div class="col-12 col-sm-6 col-lg-4 col-xl">
 
-    </div>
+        <app-sensor-card
+          title="Temperatura"
+          [value]="dashboard.temperature"
+          unit="°C"
+          icon="bi bi-thermometer-half"
+          status="Dentro del rango normal"
+          statusClass="normal">
+        </app-sensor-card>
 
-
-    <div class="col-12 col-sm-6 col-lg-4 col-xl">
-
-      <app-sensor-card
-        title="Nivel del río"
-        [value]="42"
-        unit="%"
-        icon="bi bi-water"
-        status="Nivel seguro"
-        statusClass="normal">
-      </app-sensor-card>
-
-    </div>
-
-  </section>
+      </div>
 
 
-  <!-- Gráfico + alertas -->
-  <section class="row g-3">
+      <div class="col-12 col-sm-6 col-lg-4 col-xl">
 
-    <div class="col-12 col-xl-8">
+        <app-sensor-card
+          title="Humedad relativa"
+          [value]="dashboard.humidity"
+          unit="%"
+          icon="bi bi-droplet-fill"
+          status="Condición estable"
+          statusClass="normal">
+        </app-sensor-card>
 
-      <app-sensor-chart />
+      </div>
 
-    </div>
 
-    <div class="col-12 col-xl-4">
+      <div class="col-12 col-sm-6 col-lg-4 col-xl">
 
-      <app-recent-alerts />
+        <app-sensor-card
+          title="Velocidad del viento"
+          [value]="dashboard.windSpeed"
+          unit="km/h"
+          icon="bi bi-wind"
+          status="Velocidad moderada"
+          statusClass="normal">
+        </app-sensor-card>
 
-    </div>
+      </div>
 
-  </section>
 
-</div>
+      <div class="col-12 col-sm-6 col-lg-4 col-xl">
+
+        <app-sensor-card
+          title="Nivel de lluvia"
+          [value]="dashboard.rainfall"
+          unit="mm/h"
+          icon="bi bi-cloud-rain-heavy"
+          status="Precipitación ligera"
+          statusClass="normal">
+        </app-sensor-card>
+
+      </div>
+
+
+      <div class="col-12 col-sm-6 col-lg-4 col-xl">
+
+        <app-sensor-card
+          title="Nivel del río"
+          [value]="dashboard.riverLevel"
+          unit="%"
+          icon="bi bi-water"
+          status="Nivel seguro"
+          statusClass="normal">
+        </app-sensor-card>
+
+      </div>
+
+    </section>
+
+
+    <section class="row g-3">
+
+      <div class="col-12 col-xl-8">
+        <app-sensor-chart />
+      </div>
+
+      <div class="col-12 col-xl-4">
+        <app-recent-alerts />
+      </div>
+
+    </section>
+
+  </div>
+
+}
