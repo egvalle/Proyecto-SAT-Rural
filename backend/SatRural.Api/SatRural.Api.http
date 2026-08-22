@@ -1,6 +1,25 @@
 @SatRural.Api_HostAddress = http://localhost:5053
+@sensorId = 1
 
-GET {{SatRural.Api_HostAddress}}/weatherforecast/
+### Obtener sensores paginados
+GET {{SatRural.Api_HostAddress}}/api/sensors?page=1&pageSize=10
 Accept: application/json
+
+### Filtrar por sensor y estado
+GET {{SatRural.Api_HostAddress}}/api/sensors?sensor=TEMP&isActive=true&page=1&pageSize=10
+Accept: application/json
+
+### Crear sensor
+POST {{SatRural.Api_HostAddress}}/api/sensors
+Content-Type: application/json
+
+{
+	"communityId": 1,
+	"code": "TEST-002",
+	"name": "Sensor de prueba",
+	"type": "TEST",
+	"unit": "u",
+	"isActive": true
+}
 
 ###
