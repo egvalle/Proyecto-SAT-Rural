@@ -1,63 +1,92 @@
 .system-status {
   padding: 1.5rem;
-
   border-radius: 18px;
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(20, 35, 45, 0.12);
+  transition:
+    background 0.35s ease,
+    box-shadow 0.35s ease;
+}
 
+/* Verde */
+.system-status.green {
   background: linear-gradient(
     135deg,
     #176b61,
     #10564f
   );
-
-  color: #ffffff;
-
-  box-shadow: 0 8px 24px rgba(23, 107, 97, 0.14);
 }
+
+/* Amarillo */
+.system-status.yellow {
+  background: linear-gradient(
+    135deg,
+    #d7a500,
+    #ad8200
+  );
+}
+
+/* Naranja */
+.system-status.orange {
+  background: linear-gradient(
+    135deg,
+    #e26b1f,
+    #b64e12
+  );
+}
+
+
+/* Rojo */
+.system-status.red {
+  background: linear-gradient(
+    135deg,
+    #d63c3c,
+    #a62222
+  );
+  box-shadow:
+    0 8px 24px rgba(190, 40, 40, 0.2);
+}
+
 
 .status-indicator {
   width: 10px;
   height: 10px;
-
   flex-shrink: 0;
-
   border-radius: 50%;
-
-  background: #63d39c;
-
-  box-shadow: 0 0 0 5px rgba(99, 211, 156, 0.15);
+  background: #ffffff;
+  box-shadow:
+    0 0 0 5px
+    rgba(255, 255, 255, 0.15);
 }
+
 
 h2 {
   font-size: 1.2rem;
   font-weight: 700;
 }
 
+
 p {
-  color: #d6ece9;
+  color: rgba(255, 255, 255, 0.88);
 
   font-size: 0.85rem;
 }
 
+
 .update-time {
   flex-shrink: 0;
-
   padding: 0.7rem 0.9rem;
-
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
-
   background: rgba(255, 255, 255, 0.1);
-
   font-size: 0.78rem;
-
   white-space: nowrap;
 }
 
-@media (max-width: 767.98px) {
 
+@media (max-width: 767.98px) {
   .update-time {
     width: 100%;
-
     white-space: normal;
   }
 }

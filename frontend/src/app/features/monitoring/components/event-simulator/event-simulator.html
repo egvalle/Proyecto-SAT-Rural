@@ -1,0 +1,103 @@
+<section class="simulator-panel h-100">
+
+  <div
+    class="panel-header d-flex
+           align-items-center
+           justify-content-between">
+
+    <h3 class="mb-0">
+      Simulador de eventos
+    </h3>
+
+    <span>
+      Solo administrador
+    </span>
+
+  </div>
+
+  <div class="p-4">
+
+    <label
+      for="scenario"
+      class="form-label">
+
+      Escenario de demostración
+
+    </label>
+
+    <select
+      id="scenario"
+      class="form-select"
+      [(ngModel)]="scenario">
+
+      <option value="NORMAL">
+        Condiciones normales
+      </option>
+
+      <option value="HEAVY_RAIN">
+        Lluvia intensa
+      </option>
+
+      <option value="STORM">
+        Tormenta
+      </option>
+
+      <option value="FLOOD">
+        Riesgo de inundación
+      </option>
+
+      <option value="DROUGHT">
+        Sequía
+      </option>
+
+      <option value="FROST">
+        Helada
+      </option>
+
+      <option value="FOREST_FIRE">
+        Incendio forestal
+      </option>
+
+    </select>
+
+
+    <div
+      class="d-flex
+             flex-column flex-sm-row
+             gap-2 mt-3">
+
+      <button
+        type="button"
+        class="btn btn-success"
+        [disabled]="running"
+        (click)="run()">
+
+        <i class="bi bi-play-fill me-1"></i>
+
+        Ejecutar escenario
+
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-light"
+        (click)="reset()">
+
+        <i class="bi bi-arrow-counterclockwise me-1"></i>
+
+        Reiniciar
+
+      </button>
+
+    </div>
+
+
+    <div class="simulation-message mt-3">
+
+      {{ message }}
+
+    </div>
+
+  </div>
+
+</section>

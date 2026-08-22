@@ -30,6 +30,8 @@ builder.Services.AddSingleton<
     SignalRMonitoringNotifier
 >();
 
+builder.Services.AddSingleton<SimulationState>();
+
 // Simulación de sensores
 builder.Services.AddHostedService<SensorSimulationService>();
 

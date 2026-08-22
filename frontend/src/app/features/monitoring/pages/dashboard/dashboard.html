@@ -1,52 +1,39 @@
 @if (loading) {
 
-  <div
-    class="d-flex
-           align-items-center
-           justify-content-center
-           py-5">
-
-    <div
-      class="spinner-border text-success"
-      role="status">
-
+  <div class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-success" role="status">
       <span class="visually-hidden">
         Cargando...
       </span>
-
     </div>
-
   </div>
 
 }
 @else if (error) {
 
-  <div
-    class="alert alert-danger"
-    role="alert">
-
+  <div class="alert alert-danger" role="alert">
     <i class="bi bi-exclamation-triangle me-2"></i>
-
-    No fue posible obtener la información
-    del sistema de monitoreo.
-
+    No fue posible obtener la información del sistema.
   </div>
 
 }
 @else if (dashboard) {
-
   <div class="dashboard">
-
+    <!-- ======================================
+        ESTADO GENERAL
+        ====================================== -->
     <app-system-status
       [title]="'Estado general: ' + dashboard.status"
       [description]="dashboard.statusMessage"
-      [updatedAt]="dashboard.updatedAt">
+      [updatedAt]="dashboard.updatedAt"
+      [status]="dashboard.status">
     </app-system-status>
 
+    <!-- ======================================
+        TARJETAS DE SENSORES
+        ====================================== -->
     <section class="row g-3">
-
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
-
         <app-sensor-card
           title="Temperatura"
           [value]="dashboard.temperature"
@@ -55,12 +42,10 @@
           status="Dentro del rango normal"
           statusClass="normal">
         </app-sensor-card>
-
       </div>
 
 
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
-
         <app-sensor-card
           title="Humedad relativa"
           [value]="dashboard.humidity"
@@ -69,66 +54,196 @@
           status="Condición estable"
           statusClass="normal">
         </app-sensor-card>
-
       </div>
 
-
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
-
         <app-sensor-card
-          title="Velocidad del viento"
+          title="Viento"
           [value]="dashboard.windSpeed"
           unit="km/h"
           icon="bi bi-wind"
           status="Velocidad moderada"
           statusClass="normal">
         </app-sensor-card>
-
       </div>
 
-
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
-
         <app-sensor-card
-          title="Nivel de lluvia"
+          title="Lluvia"
           [value]="dashboard.rainfall"
           unit="mm/h"
           icon="bi bi-cloud-rain-heavy"
-          status="Precipitación ligera"
+          status="Precipitación registrada"
           statusClass="normal">
         </app-sensor-card>
-
       </div>
 
-
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
-
         <app-sensor-card
           title="Nivel del río"
           [value]="dashboard.riverLevel"
           unit="%"
           icon="bi bi-water"
-          status="Nivel seguro"
+          status="Nivel monitoreado"
           statusClass="normal">
         </app-sensor-card>
-
       </div>
-
     </section>
 
-
+    <!-- ======================================
+        GRÁFICA + ALERTAS
+        ====================================== -->
     <section class="row g-3">
-
       <div class="col-12 col-xl-8">
-        <app-sensor-chart />
+        <app-sensor-chart
+          [history]="history">
+        </app-sensor-chart>
       </div>
-
       <div class="col-12 col-xl-4">
-        <app-recent-alerts />
+        <app-recent-alerts
+          [alerts]="recentAlerts">
+        </app-recent-alerts>
       </div>
 
     </section>
 
-  </div>
+    <!-- ======================================
+        ESTADO DE SENSORES + SIMULADOR
+        ====================================== -->
+    <section class="row g-3">
+      <!-- ESTADO DE SENSORES -->
+      <div class="col-12 col-xl-7">
+        <section class="panel h-100">
+          <div
+            class="panel-header d-flex
+                  align-items-center
+                  justify-content-between">
+            <div>
+              <h3 class="mb-1">
+                Estado de sensores
+              </h3>
+              <p class="mb-0">
+                Última lectura registrada
+              </p>
+            </div>
+            <span class="sensor-count">
+              5 activos
+            </span>
+          </div>
 
+          <div class="table-responsive">
+            <table class="table sensor-table mb-0">
+              <thead>
+                <tr>
+                  <th>Sensor</th>
+                  <th>Tipo</th>
+                  <th>Valor</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <strong>TEMP-001</strong>
+                  </td>
+                  <td>Temperatura</td>
+                  <td>
+                    {{ dashboard.temperature }} °C
+                  </td>
+                  <td>
+                    <span class="sensor-badge normal">
+                      <i class="bi bi-circle-fill"></i>
+                      Normal
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>HUM-001</strong>
+                  </td>
+                  <td>Humedad</td>
+                  <td>
+                    {{ dashboard.humidity }} %
+                  </td>
+                  <td>
+                    <span class="sensor-badge normal">
+                      <i class="bi bi-circle-fill"></i>
+                      Normal
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>WIND-001</strong>
+                  </td>
+                  <td>Viento</td>
+                  <td>
+                    {{ dashboard.windSpeed }} km/h
+                  </td>
+                  <td>
+                    <span class="sensor-badge normal">
+                      <i class="bi bi-circle-fill"></i>
+                      Normal
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>RAIN-001</strong>
+                  </td>
+                  <td>Pluviómetro</td>
+                  <td>
+                    {{ dashboard.rainfall }} mm/h
+                  </td>
+                  <td>
+                    <span
+                      class="sensor-badge"
+                      [class.warning]="dashboard.rainfall >= 15"
+                      [class.normal]="dashboard.rainfall < 15">
+                      <i class="bi bi-circle-fill"></i>
+                      {{
+                        dashboard.rainfall >= 15
+                          ? 'Precaución'
+                          : 'Normal'
+                      }}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <strong>RIVER-001</strong>
+                  </td>
+                  <td>Nivel de río</td>
+                  <td>
+                    {{ dashboard.riverLevel }} %
+                  </td>
+                  <td>
+                    <span
+                      class="sensor-badge"
+                      [class.warning]="dashboard.riverLevel >= 60"
+                      [class.normal]="dashboard.riverLevel < 60">
+                      <i class="bi bi-circle-fill"></i>
+                      {{
+                        dashboard.riverLevel >= 60
+                          ? 'Observación'
+                          : 'Normal'
+                      }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+
+      <!-- SIMULADOR -->
+
+      <div class="col-12 col-xl-5">
+        <app-event-simulator />
+      </div>
+
+    </section>
+  </div>
 }

@@ -2,7 +2,8 @@
 
   <div
     class="panel-header d-flex
-           align-items-center justify-content-between gap-3">
+           align-items-center
+           justify-content-between gap-3">
 
     <div>
       <h3 class="mb-1">
@@ -20,7 +21,6 @@
 
   </div>
 
-
   <div class="alerts-list">
 
     @for (alert of alerts; track alert.id) {
@@ -31,15 +31,15 @@
 
         <span
           class="severity flex-shrink-0"
-          [class.yellow]="alert.level === 'yellow'"
-          [class.orange]="alert.level === 'orange'"
-          [class.red]="alert.level === 'red'">
+          [class.yellow]="alert.level === 'YELLOW'"
+          [class.orange]="alert.level === 'ORANGE'"
+          [class.red]="alert.level === 'RED'">
         </span>
 
         <div class="alert-content flex-grow-1">
 
           <strong>
-            {{ alert.title }}
+            {{ alert.type }}
           </strong>
 
           <p class="mb-0">
@@ -49,10 +49,17 @@
         </div>
 
         <time class="flex-shrink-0">
-          {{ alert.time }}
+          {{ alert.createdAt | date:'HH:mm:ss' }}
         </time>
 
       </article>
+
+    }
+    @empty {
+
+      <div class="p-4 text-center text-secondary">
+        No existen alertas recientes.
+      </div>
 
     }
 

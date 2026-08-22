@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 
+import { SensorHistory } from '../models/monitoring-history.model';
+import { RecentAlert } from '../models/recent-alert.model';
+
 import {
   HubConnection,
   HubConnectionBuilder,
@@ -74,5 +77,56 @@ export class MonitoringService {
 
       this.hubConnection = undefined;
     }
+  }
+
+  getHistory(
+    limit = 20
+  ): Observable<SensorHistory[]> {
+
+    return this.http.get<SensorHistory[]>(
+      `${this.apiUrl}/history`,
+      {
+        params: {
+          limit
+        }
+      }
+    );
+  }
+
+
+  getRecentAlerts(
+    limit = 5
+  ): Observable<RecentAlert[]> {
+
+    return this.http.get<RecentAlert[]>(
+      `${this.apiUrl}/alerts/recent`,
+      {
+        params: {
+          limit
+        }
+      }
+    );
+  }
+
+
+  startSimulation(
+    scenario: string
+  ): Observable<any> {
+
+    return this.http.post(
+      `${this.apiUrl}/simulation`,
+      {
+        scenario
+      }
+    );
+  }
+
+
+  resetSimulation(): Observable<any> {
+
+    return this.http.post(
+      `${this.apiUrl}/simulation/reset`,
+      {}
+    );
   }
 }

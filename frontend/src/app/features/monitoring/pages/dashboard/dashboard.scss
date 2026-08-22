@@ -1,19 +1,145 @@
 .dashboard {
   display: flex;
   flex-direction: column;
-
   gap: 1.25rem;
 }
 
 app-system-status,
 app-sensor-card,
 app-sensor-chart,
-app-recent-alerts {
+app-recent-alerts,
+app-event-simulator {
   display: block;
 }
 
 app-sensor-card,
 app-sensor-chart,
-app-recent-alerts {
+app-recent-alerts,
+app-event-simulator {
   height: 100%;
+}
+
+
+/* =========================
+   Panel general
+   ========================= */
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #e5e9ed;
+  border-radius: 16px;
+  box-shadow:
+    0 6px 20px
+    rgba(20, 35, 45, 0.05);
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 1.15rem 1.25rem;
+  border-bottom:
+    1px solid #e5e9ed;
+}
+
+.panel-header h3 {
+  color: #18212b;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.panel-header p {
+  color: #88939d;
+  font-size: 0.72rem;
+}
+
+
+/* =========================
+   Sensor count
+   ========================= */
+
+.sensor-count {
+  padding:
+    0.4rem
+    0.7rem;
+  border-radius: 999px;
+  background: #eef6f4;
+  color: #176b61;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+
+/* =========================
+   Tabla sensores
+   ========================= */
+.sensor-table {
+  --bs-table-bg: transparent;
+}
+
+.sensor-table thead th {
+  padding:
+    0.85rem
+    1.25rem;
+  background: #f8fafb;
+  color: #798590;
+  border-bottom:
+    1px solid #e5e9ed;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.sensor-table tbody td {
+  padding:
+    0.9rem
+    1.25rem;
+  color: #48535e;
+  vertical-align: middle;
+  border-color: #edf0f2;
+  font-size: 0.78rem;
+}
+
+.sensor-table strong {
+  color: #26313c;
+
+  font-weight: 700;
+}
+
+
+/* =========================
+   Estados
+   ========================= */
+.sensor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding:
+    0.35rem
+    0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.sensor-badge i {
+  font-size: 0.4rem;
+}
+
+.sensor-badge.normal {
+  background: #eaf7ef;
+  color: #268a53;
+}
+
+.sensor-badge.warning {
+  background: #fff6d7;
+  color: #a87900;
+}
+
+.sensor-badge.alert {
+  background: #fff0e4;
+  color: #c45b16;
+}
+
+.sensor-badge.emergency {
+  background: #fde8e8;
+  color: #bf3030;
 }

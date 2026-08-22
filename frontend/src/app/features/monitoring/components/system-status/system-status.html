@@ -1,6 +1,10 @@
 <section
   class="system-status d-flex flex-column flex-md-row
-         align-items-md-center justify-content-between gap-3">
+         align-items-md-center justify-content-between gap-3"
+  [class.green]="statusClass === 'green'"
+  [class.yellow]="statusClass === 'yellow'"
+  [class.orange]="statusClass === 'orange'"
+  [class.red]="statusClass === 'red'">
 
   <div>
 
@@ -25,7 +29,8 @@
     <i class="bi bi-clock"></i>
 
     <span>
-      {{ updatedAt }}
+      Última actualización:
+      {{ updatedAt | date:'dd/MM/yyyy h:mm:ss a' }}
     </span>
 
   </div>
