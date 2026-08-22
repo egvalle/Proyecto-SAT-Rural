@@ -1,0 +1,61 @@
+<section class="alerts-panel h-100">
+
+  <div
+    class="panel-header d-flex
+           align-items-center justify-content-between gap-3">
+
+    <div>
+      <h3 class="mb-1">
+        Alertas recientes
+      </h3>
+
+      <p class="mb-0">
+        Últimos eventos detectados
+      </p>
+    </div>
+
+    <span class="event-count">
+      {{ alerts.length }}
+    </span>
+
+  </div>
+
+
+  <div class="alerts-list">
+
+    @for (alert of alerts; track alert.id) {
+
+      <article
+        class="alert-item d-flex
+               align-items-start gap-3">
+
+        <span
+          class="severity flex-shrink-0"
+          [class.yellow]="alert.level === 'yellow'"
+          [class.orange]="alert.level === 'orange'"
+          [class.red]="alert.level === 'red'">
+        </span>
+
+        <div class="alert-content flex-grow-1">
+
+          <strong>
+            {{ alert.title }}
+          </strong>
+
+          <p class="mb-0">
+            {{ alert.message }}
+          </p>
+
+        </div>
+
+        <time class="flex-shrink-0">
+          {{ alert.time }}
+        </time>
+
+      </article>
+
+    }
+
+  </div>
+
+</section>

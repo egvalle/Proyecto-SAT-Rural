@@ -1,0 +1,83 @@
+.sensor-card {
+  padding: 1.25rem;
+
+  background: #ffffff;
+
+  border: 1px solid #e5e9ed;
+  border-radius: 16px;
+
+  box-shadow: 0 6px 20px rgba(20, 35, 45, 0.05);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.sensor-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 10px 28px rgba(20, 35, 45, 0.08);
+}
+
+.sensor-title {
+  color: #6e7a86;
+
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.sensor-icon {
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 11px;
+
+  background: #eef6f4;
+  color: #176b61;
+
+  font-size: 1.1rem;
+}
+
+.sensor-value {
+  color: #18212b;
+
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+
+.sensor-unit {
+  margin-left: 0.15rem;
+
+  color: #718096;
+
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.sensor-status {
+  color: #2f9e62;
+
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.sensor-status i {
+  font-size: 0.45rem;
+}
+
+.sensor-status.warning {
+  color: #d69e00;
+}
+
+.sensor-status.alert {
+  color: #dd6b20;
+}
+
+.sensor-status.emergency {
+  color: #d93a3a;
+}

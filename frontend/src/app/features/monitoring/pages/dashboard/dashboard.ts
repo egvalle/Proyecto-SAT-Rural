@@ -1,71 +1,100 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
-import { NgClass } from '@angular/common';
-import { SidebarService } from '../../../../shared/services/sidebar.service';
-import { RouterModule} from '@angular/router';
-import { DashboardNavbarComponent } from './dashboard-navbar/dashboard-navbar.component';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+
+import { Subscription } from 'rxjs';
+
+import { SystemStatus }
+  from '../../components/system-status/system-status';
+
+import { SensorCard }
+  from '../../components/sensor-card/sensor-card';
+
+import { SensorChart }
+  from '../../components/sensor-chart/sensor-chart';
+
+import { RecentAlerts }
+  from '../../components/recent-alerts/recent-alerts';
+
+import { MonitoringService }
+  from '../../services/monitoring.service';
+
+import { DashboardData }
+  from '../../models/dashboard.model';
 
 @Component({
   selector: 'app-dashboard',
+  standalone: true,
   imports: [
-    RouterModule,
-    DashboardNavbarComponent,
-    // NgClass,
-    // AppSidebarComponent,
-    // BackdropComponent,
-    // AppHeaderComponent,
-],
+    SystemStatus,
+    SensorCard,
+    SensorChart,
+    RecentAlerts
+  ],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss',
+  styleUrl: './dashboard.scss'
 })
-export class Dashboard {
-  isApplicationMenuOpen = false;
-  readonly isMobileOpen$;
-  readonly isHovered$;
-  readonly isExpanded$;
-  
-  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
+export class Dashboard implements OnInit, OnDestroy {
 
-  constructor(public sidebarService: SidebarService) {
-    this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
-    this.isHovered$ = this.sidebarService.isHovered$;
-    this.isExpanded$ = this.sidebarService.isExpanded$;
+  dashboard?: DashboardData;
+
+  loading = true;
+
+  error = false;
+
+  private readingsSubscription?: Subscription;
+
+  constructor(
+    private monitoringService: MonitoringService
+  ) {
   }
 
-   handleToggle() {
-    if (window.innerWidth >= 1280) {
-      this.sidebarService.toggleExpanded();
-    } else {
-      this.sidebarService.toggleMobileOpen();
+  ngOnInit(): void {
+
+    this.loadDashboard();
+
+    this.readingsSubscription =
+      this.monitoringService
+        .readingsUpdated$
+        .subscribe(() => {
+          this.loadDashboard(false);
+        });
+
+    this.monitoringService
+      .startRealtimeConnection();
+  }
+
+  ngOnDestroy(): void {
+
+    this.readingsSubscription?.unsubscribe();
+
+  }
+
+  private loadDashboard(showLoading = true): void {
+
+    if (showLoading) {
+      this.loading = true;
     }
+
+    this.error = false;
+
+    this.monitoringService
+      .getDashboard()
+      .subscribe({
+
+        next: data => {
+          this.dashboard = data;
+          this.loading = false;
+        },
+
+        error: error => {
+          console.error(
+            'Error al cargar el dashboard',
+            error
+          );
+
+          this.error = true;
+          this.loading = false;
+        }
+
+      });
   }
-
-  toggleApplicationMenu() {
-    this.isApplicationMenuOpen = !this.isApplicationMenuOpen;
-  }
-
-  ngAfterViewInit() {
-    document.addEventListener('keydown', this.handleKeyDown);
-  }
-
-  ngOnDestroy() {
-    document.removeEventListener('keydown', this.handleKeyDown);
-  }
-
-  handleKeyDown = (event: KeyboardEvent) => {
-    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
-      event.preventDefault();
-      this.searchInput?.nativeElement.focus();
-    }
-  };
-  // get containerClasses() {
-  //   return [
-  //     'flex-1',
-  //     'transition-all',
-  //     'duration-300',
-  //     'ease-in-out',
-  //     (this.isExpanded$ || this.isHovered$) ? 'xl:ml-[290px]' : 'xl:ml-[90px]',
-  //     this.isMobileOpen$ ? 'ml-0' : ''
-  //   ];
-  // }
-
 }

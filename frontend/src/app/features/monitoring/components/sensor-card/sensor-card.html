@@ -1,0 +1,39 @@
+<article class="sensor-card h-100">
+
+  <div class="d-flex align-items-center justify-content-between gap-3">
+
+    <span class="sensor-title">
+      {{ title }}
+    </span>
+
+    <div class="sensor-icon">
+      <i [class]="icon"></i>
+    </div>
+
+  </div>
+
+  <div class="sensor-value mt-3">
+
+    {{ value }}
+
+    <span class="sensor-unit">
+      {{ unit }}
+    </span>
+
+  </div>
+
+  <div
+    class="sensor-status d-flex align-items-center gap-2 mt-2"
+    [class.warning]="statusClass === 'warning'"
+    [class.alert]="statusClass === 'alert'"
+    [class.emergency]="statusClass === 'emergency'">
+
+    <i class="bi bi-circle-fill"></i>
+
+    <span>
+      {{ status }}
+    </span>
+
+  </div>
+
+</article>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SatRural.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using SatRural.Infrastructure.Persistence;
 namespace SatRural.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820011511_AddCoreEntities")]
+    partial class AddCoreEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -118,32 +121,18 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal?>("Latitude")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("decimal(9,6)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("Longitude")
-                        .HasPrecision(9, 6)
-                        .HasColumnType("decimal(9,6)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Communities");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2026, 8, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            Latitude = 14.634915m,
-                            Longitude = -90.506882m,
-                            Name = "Comunidad El Pinar"
-                        });
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.Event", b =>
@@ -190,8 +179,7 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("CommunityId")
                         .HasColumnType("int");
@@ -204,84 +192,21 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Unit")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
 
                     b.HasIndex("CommunityId");
 
                     b.ToTable("Sensors");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Code = "TEMP-001",
-                            CommunityId = 1,
-                            CreatedAt = new DateTime(2026, 8, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            Name = "Temperatura Ambiente",
-                            Type = "TEMPERATURE",
-                            Unit = "°C"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Code = "HUM-001",
-                            CommunityId = 1,
-                            CreatedAt = new DateTime(2026, 8, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            Name = "Humedad Relativa",
-                            Type = "HUMIDITY",
-                            Unit = "%"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Code = "WIND-001",
-                            CommunityId = 1,
-                            CreatedAt = new DateTime(2026, 8, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            Name = "Velocidad del Viento",
-                            Type = "WIND_SPEED",
-                            Unit = "km/h"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Code = "RAIN-001",
-                            CommunityId = 1,
-                            CreatedAt = new DateTime(2026, 8, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            Name = "Nivel de Lluvia",
-                            Type = "RAINFALL",
-                            Unit = "mm/h"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Code = "RIVER-001",
-                            CommunityId = 1,
-                            CreatedAt = new DateTime(2026, 8, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsActive = true,
-                            Name = "Nivel del Río",
-                            Type = "RIVER_LEVEL",
-                            Unit = "%"
-                        });
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.SensorReading", b =>
@@ -393,7 +318,7 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.HasOne("SatRural.Domain.Entities.Community", "Community")
                         .WithMany("Sensors")
                         .HasForeignKey("CommunityId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Community");
