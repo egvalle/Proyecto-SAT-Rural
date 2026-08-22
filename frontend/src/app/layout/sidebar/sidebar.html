@@ -44,12 +44,12 @@
     Alertas
     </a>
 
-    <a routerLink="/history" routerLinkActive="active" (click)="close()">
+    <a class="disabled-link" (click)="$event.preventDefault()">
     <i class="bi bi-clock-history"></i>
     Historial
     </a>
 
-    <a routerLink="/communities" routerLinkActive="active" (click)="close()">
+    <a class="disabled-link" (click)="$event.preventDefault()">
     <i class="bi bi-geo-alt"></i>
     Comunidades
     </a>
@@ -58,17 +58,17 @@
       ADMINISTRACIÓN
     </p>
 
-    <a routerLink="/settings" routerLinkActive="active" (click)="close()">
+    <a class="disabled-link" (click)="$event.preventDefault()">
     <i class="bi bi-gear"></i>
     Configuración
     </a>
 
-    <a routerLink="/users" routerLinkActive="active" (click)="close()">
+    <a class="disabled-link" (click)="$event.preventDefault()">
     <i class="bi bi-people"></i>
     Usuarios
     </a>
 
-    <a routerLink="/audit-log" routerLinkActive="active" (click)="close()">
+    <a class="disabled-link" (click)="$event.preventDefault()">
     <i class="bi bi-list-check"></i>
     Bitácora
     </a>

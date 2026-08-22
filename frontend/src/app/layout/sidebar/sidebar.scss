@@ -245,6 +245,10 @@ nav a:focus-visible {
   border-radius: 10px;
 }
 
+.disabled-link {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* =========================
    Responsive
