@@ -8,7 +8,7 @@ import { DashboardNavbarComponent } from '../features/monitoring/pages/dashboard
   selector: 'app-home',
   imports: [
     RouterModule,
-    DashboardNavbarComponent,
+   // DashboardNavbarComponent,
     // NgClass,
     // AppSidebarComponent,
     // BackdropComponent,
