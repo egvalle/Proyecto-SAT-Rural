@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ComponentCardComponent } from '../../../..//../app/shared/components/component-card/component-card.component';
+import { AuthService } from '../../../../core/services/auth.service';
 import { SensorListItem, SensorService } from '../../../../core/services/sensor.service';
 
 
@@ -30,7 +31,10 @@ export class Sensors {
   isLoadingSensors = false;
   sensorListError = '';
 
-  constructor(private readonly sensorService: SensorService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly sensorService: SensorService
+  ) {}
 
   filterSensors(): void {
     this.sensorListError = '';
@@ -67,6 +71,11 @@ export class Sensors {
   saveSensor(): void {
     this.saveMessage = '';
     this.saveError = '';
+
+    if (this.authService.getRole() !== 'ADMIN') {
+      this.saveError = 'No posee los permisos suficientes.';
+      return;
+    }
 
     if (!this.sensorCode.trim() || !this.sensorName.trim() || !this.sensorType || !this.sensorStatus) {
       this.saveError = 'Completa los datos obligatorios del sensor.';

@@ -12,6 +12,9 @@ export interface LoginRequest {
 export interface LoginResponse {
   token?: string;
   accessToken?: string;
+  user?: {
+    role?: string;
+  };
   [key: string]: unknown;
 }
 
@@ -21,6 +24,7 @@ export interface LoginResponse {
 export class AuthService {
   private readonly loginUrl = `${environment.apiBaseUrl}/api/auth/login`;
   private readonly tokenKey = 'sat-rural-auth-token';
+  private readonly roleKey = 'sat-rural-user-role';
   private readonly authenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
 
   readonly isAuthenticated$ = this.authenticatedSubject.asObservable();
@@ -35,6 +39,9 @@ export class AuthService {
         if (token) {
           const storage = rememberSession ? localStorage : sessionStorage;
           storage.setItem(this.tokenKey, token);
+          if (response.user?.role) {
+            storage.setItem(this.roleKey, response.user.role);
+          }
           this.authenticatedSubject.next(true);
         }
       })
@@ -44,7 +51,13 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     sessionStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.roleKey);
+    sessionStorage.removeItem(this.roleKey);
     this.authenticatedSubject.next(false);
+  }
+
+  getRole(): string | null {
+    return localStorage.getItem(this.roleKey) ?? sessionStorage.getItem(this.roleKey);
   }
 
   isAuthenticated(): boolean {
