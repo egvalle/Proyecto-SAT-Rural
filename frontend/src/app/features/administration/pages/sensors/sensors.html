@@ -35,6 +35,74 @@
       </div>
     </div>
 
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <div class="mb-4">
+          <h2 class="h5 mb-1">Registrar sensor</h2>
+          <p class="text-body-secondary mb-0">Completa los datos para agregar un nuevo dispositivo.</p>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="sensorCode" class="form-label">Código</label>
+            <input id="sensorCode" name="sensorCode" type="text" class="form-control"
+              [(ngModel)]="sensorCode" placeholder="Ej. SEN-004">
+          </div>
+
+          <div class="col-md-6">
+            <label for="sensorName" class="form-label">Nombre</label>
+            <input id="sensorName" name="sensorName" type="text" class="form-control"
+              [(ngModel)]="sensorName" placeholder="Ej. Sensor de temperatura">
+          </div>
+
+          <div class="col-md-6">
+            <label for="sensorType" class="form-label">Tipo</label>
+            <select id="sensorType" name="sensorType" class="form-select"
+              [(ngModel)]="sensorType" [disabled]="useCustomType">
+              <option value="" disabled>Selecciona un tipo</option>
+              <option value="TEMPERATURE">Temperatura</option>
+              <option value="HUMIDITY">Humedad</option>
+              <option value="FLOW">Caudal</option>
+            </select>
+            <div class="form-check mt-2">
+              <input id="useCustomType" name="useCustomType" type="checkbox" class="form-check-input"
+                [(ngModel)]="useCustomType">
+              <label for="useCustomType" class="form-check-label">Sin lectura</label>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label for="customSensorType" class="form-label">última lectura</label>
+            <input id="customSensorType" name="customSensorType" type="text" class="form-control"
+              [(ngModel)]="customSensorType" [disabled]="!useCustomType"
+              placeholder="Escribe el tipo del sensor">
+          </div>
+
+          <div class="col-md-6">
+            <label for="sensorStatus" class="form-label">Estado</label>
+            <select id="sensorStatus" name="sensorStatus" class="form-select" [(ngModel)]="sensorStatus">
+              <option value="" disabled>Selecciona un estado</option>
+              <option value="Activo">Activo</option>
+              <option value="En mantenimiento">En mantenimiento</option>
+              <option value="Sin conexión">Sin conexión</option>
+            </select>
+          </div>
+
+          <div class="col-12 d-flex justify-content-end">
+            <button type="button" class="btn btn-primary" (click)="saveSensor()" [disabled]="isSaving">
+              {{ isSaving ? 'Guardando...' : 'Grabar sensor' }}
+            </button>
+          </div>
+          @if (saveMessage) {
+            <div class="col-12 text-success" role="status">{{ saveMessage }}</div>
+          }
+          @if (saveError) {
+            <div class="col-12 text-danger" role="alert">{{ saveError }}</div>
+          }
+        </div>
+      </div>
+    </div>
+
     <div class="card border-0 shadow-sm">
       <div class="card-body">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
@@ -42,28 +110,31 @@
             <h2 class="h5 mb-1">Listado de sensores</h2>
             <p class="text-body-secondary mb-0">Consulta el estado y la ubicación de cada dispositivo.</p>
           </div>
-          <button type="button" class="btn btn-primary">
-            <span aria-hidden="true">+</span>
-            Nuevo sensor
-          </button>
+          <!-- <button type="button" class="btn btn-primary"> -->
+            <!-- <span aria-hidden="true">+</span> -->
+            <!-- Grabar
+          </button> -->
         </div>
 
         <div class="row g-3 mb-4">
           <div class="col-md-6">
             <label for="sensorSearch" class="form-label">Buscar sensor</label>
-            <input id="sensorSearch" type="search" class="form-control" placeholder="Nombre o identificador">
+            <input id="sensorSearch" name="sensorSearch" type="search" class="form-control"
+              [(ngModel)]="sensorSearch" placeholder="Nombre o identificador">
           </div>
           <div class="col-md-4">
-            <label for="sensorStatus" class="form-label">Estado</label>
-            <select id="sensorStatus" class="form-select">
-              <option selected>Todos los estados</option>
-              <option>Activo</option>
-              <option>En mantenimiento</option>
-              <option>Sin conexión</option>
+            <label for="sensorFilterStatus" class="form-label">Estado</label>
+            <select id="sensorFilterStatus" name="sensorFilterStatus" class="form-select" [(ngModel)]="sensorActive">
+              <option value="">Todos los estados</option>
+              <option value="true">Activo</option>
+              <option value="false">Inactivo</option>
             </select>
           </div>
           <div class="col-md-2 d-flex align-items-end">
-            <button type="button" class="btn btn-outline-secondary w-100">Filtrar</button>
+            <button type="button" class="btn btn-outline-secondary w-100" (click)="filterSensors()"
+              [disabled]="isLoadingSensors">
+              {{ isLoadingSensors ? 'Consultando...' : 'Filtrar' }}
+            </button>
           </div>
         </div>
 
@@ -80,30 +151,27 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="fw-semibold">SEN-001</td>
-                <td>Temperatura</td>
-                <td>Parcela Norte</td>
-                <td>24.6 °C</td>
-                <td><span class="badge text-bg-success">Activo</span></td>
-                <td class="text-end"><button type="button" class="btn btn-sm btn-outline-primary">Ver</button></td>
-              </tr>
-              <tr>
-                <td class="fw-semibold">SEN-002</td>
-                <td>Humedad</td>
-                <td>Invernadero 1</td>
-                <td>68 %</td>
-                <td><span class="badge text-bg-success">Activo</span></td>
-                <td class="text-end"><button type="button" class="btn btn-sm btn-outline-primary">Ver</button></td>
-              </tr>
-              <tr>
-                <td class="fw-semibold">SEN-003</td>
-                <td>Caudal</td>
-                <td>Canal Principal</td>
-                <td>Sin lectura</td>
-                <td><span class="badge text-bg-danger">Sin conexión</span></td>
-                <td class="text-end"><button type="button" class="btn btn-sm btn-outline-primary">Ver</button></td>
-              </tr>
+              @for (sensor of sensors; track sensor.code) {
+                <tr>
+                  <td class="fw-semibold">{{ sensor.code }}<br><small class="fw-normal">{{ sensor.name }}</small></td>
+                  <td>{{ getSensorTypeLabel(sensor.type) }}</td>
+                  <td>{{ sensor.location || 'Sin ubicación' }}</td>
+                  <td>{{ sensor.latestReading ?? 'Sin lectura' }} {{ sensor.latestReading !== undefined ? sensor.unit : '' }}</td>
+                  <td>
+                    <span class="badge" [class.text-bg-success]="sensor.isActive" [class.text-bg-secondary]="!sensor.isActive">
+                      {{ sensor.isActive ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td class="text-end"><button type="button" class="btn btn-sm btn-outline-primary">Ver</button></td>
+                </tr>
+              }
+              @if (isLoadingSensors) {
+                <tr><td colspan="6" class="text-center text-body-secondary">Consultando sensores...</td></tr>
+              } @else if (sensorListError) {
+                <tr><td colspan="6" class="text-center text-danger">{{ sensorListError }}</td></tr>
+              } @else if (sensors.length === 0) {
+                <tr><td colspan="6" class="text-center text-body-secondary">No se encontraron sensores.</td></tr>
+              }
             </tbody>
           </table>
         </div>

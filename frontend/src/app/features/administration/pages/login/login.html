@@ -45,13 +45,21 @@
           </div>
         </div>
 
+        <label class="r">
+          <a><u>Registrarse</u></a>
+        </label>
+
         <label class="remember-option">
-          <input type="checkbox" name="remember" />
+          <input type="checkbox" name="remember" [(ngModel)]="rememberSession" />
           <span>Recordar mi sesión</span>
         </label>
 
-        <button  routerLink="dashboard"  class="submit-button" type="submit"  [disabled]="loginForm.invalid">
-          Ingresar al panel <span aria-hidden="true">&#8594;</span>
+        @if (errorMessage) {
+          <p class="login-error" role="alert">{{ errorMessage }}</p>
+        }
+
+        <button class="submit-button" type="submit" [disabled]="loginForm.invalid || isLoading">
+          {{ isLoading ? 'Ingresando...' : 'Ingresar al panel' }} <span aria-hidden="true">&#8594;</span>
         </button>
       </form>
 
