@@ -1,0 +1,61 @@
+<main class="login-page">
+  <section class="login-showcase" aria-label="SAT Rural">
+    <div class="showcase-content">
+      <div class="brand-mark" aria-hidden="true"><span>SR</span></div>
+      <p class="eyebrow">SAT RURAL</p>
+      <h1>El campo conectado, a tu alcance.</h1>
+      <p class="showcase-copy">Supervisa tus sensores y toma decisiones con información clara, estés donde estés.</p>
+      <div class="showcase-line" aria-hidden="true"></div>
+      <p class="showcase-caption">Tecnología que acompaña el trabajo de cada día.</p>
+    </div>
+  </section>
+
+  <section class="login-panel">
+    <div class="login-card">
+      <a class="back-link" routerLink="/" aria-label="Volver al dashboard">
+        <span aria-hidden="true">&#8592;</span> Volver al dashboard
+      </a>
+
+      <div class="heading-group">
+        <p class="form-kicker">Panel de control</p>
+        <h2>Bienvenido de nuevo</h2>
+        <p>Ingresa tus datos para continuar con tu jornada.</p>
+      </div>
+
+      <form class="login-form" #loginForm="ngForm" (ngSubmit)="onSignIn()" novalidate>
+        <div class="field-group">
+          <label for="username">Username</label>
+          <div class="input-wrap">
+            <span class="input-icon" aria-hidden="true">&#9787;</span>
+            <input id="username" type="text" name="username" [(ngModel)]="username" placeholder="Ingresa tu username" autocomplete="username" required />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="label-row">
+            <label for="password">Password</label>
+            <a routerLink="/reset-password">¿Olvidaste tu contraseña?</a>
+          </div>
+          <div class="input-wrap">
+            <span class="input-icon lock-icon" aria-hidden="true">&#128274;</span>
+            <input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" placeholder="Ingresa tu password" autocomplete="current-password" required />
+            <button class="password-toggle" type="button" (click)="togglePassword()" [attr.aria-label]="showPassword ? 'Ocultar password' : 'Mostrar password'">
+              {{ showPassword ? 'Ocultar' : 'Mostrar' }}
+            </button>
+          </div>
+        </div>
+
+        <label class="remember-option">
+          <input type="checkbox" name="remember" />
+          <span>Recordar mi sesión</span>
+        </label>
+
+        <button  routerLink="dashboard"  class="submit-button" type="submit"  [disabled]="loginForm.invalid">
+          Ingresar al panel <span aria-hidden="true">&#8594;</span>
+        </button>
+      </form>
+
+      <p class="security-note"><span aria-hidden="true">&#10003;</span> Acceso protegido para tu equipo de trabajo</p>
+    </div>
+  </section>
+</main>
