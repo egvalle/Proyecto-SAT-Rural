@@ -1,1 +1,111 @@
-<p>alerts works!</p>
+<div class="alerts-page">
+
+  <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <h2 class="mb-0">Alertas</h2>
+
+    <div class="d-flex gap-2 flex-wrap">
+      <button
+        class="btn btn-sm"
+        [class.btn-secondary]="levelFilter === null"
+        [class.btn-outline-secondary]="levelFilter !== null"
+        (click)="setLevelFilter(null)">
+        Todas
+      </button>
+      <button
+        class="btn btn-sm"
+        [class.btn-warning]="levelFilter === 'YELLOW'"
+        [class.btn-outline-warning]="levelFilter !== 'YELLOW'"
+        (click)="setLevelFilter('YELLOW')">
+        Amarillo
+      </button>
+      <button
+        class="btn btn-sm"
+        [class.btn-orange]="levelFilter === 'ORANGE'"
+        [class.btn-outline-secondary]="levelFilter !== 'ORANGE'"
+        (click)="setLevelFilter('ORANGE')">
+        Naranja
+      </button>
+      <button
+        class="btn btn-sm"
+        [class.btn-danger]="levelFilter === 'RED'"
+        [class.btn-outline-danger]="levelFilter !== 'RED'"
+        (click)="setLevelFilter('RED')">
+        Rojo
+      </button>
+      <button
+        class="btn btn-sm btn-outline-primary"
+        (click)="toggleActiveOnly()">
+        {{ activeOnly ? 'Mostrando: solo activas' : 'Mostrando: todas' }}
+      </button>
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="d-flex justify-content-center py-5">
+      <div class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  }
+  @else if (error) {
+    <div class="alert alert-danger">
+      No fue posible cargar las alertas.
+    </div>
+  }
+  @else {
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Nivel</th>
+            <th>Tipo</th>
+            <th>Mensaje</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (alert of alerts; track alert.id) {
+            <tr>
+              <td>
+                <span
+                  class="badge"
+                  [class.text-bg-warning]="alert.level === 'YELLOW'"
+                  [class.text-bg-danger]="alert.level === 'RED'"
+                  [class.text-bg-secondary]="alert.level === 'ORANGE'">
+                  {{ alert.level }}
+                </span>
+              </td>
+              <td>{{ alert.type }}</td>
+              <td>{{ alert.message }}</td>
+              <td>{{ alert.createdAt | date:'dd/MM HH:mm:ss' }}</td>
+              <td>
+                @if (alert.isActive) {
+                  <span class="badge text-bg-danger">Activa</span>
+                } @else {
+                  <span class="badge text-bg-success">Resuelta</span>
+                }
+              </td>
+              <td>
+                @if (alert.isActive) {
+                  <button class="btn btn-sm btn-outline-success" (click)="resolve(alert)">
+                    Resolver
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="6" class="text-center text-secondary py-4">
+                No hay alertas para este filtro.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>
