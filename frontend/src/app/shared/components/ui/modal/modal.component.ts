@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+
 import {
   Component,
   ElementRef,
@@ -10,8 +11,9 @@ import {
 
 @Component({
   selector: 'app-modal',
+  standalone: true,
   imports: [
-    CommonModule,
+    CommonModule
   ],
   templateUrl: './modal.component.html',
   styles: ``
@@ -19,39 +21,59 @@ import {
 export class ModalComponent {
 
   @Input() isOpen = false;
-  @Output() close = new EventEmitter<void>();
+
+  @Output() close =
+    new EventEmitter<void>();
+
   @Input() className = '';
+
   @Input() showCloseButton = true;
+
   @Input() isFullscreen = false;
 
-  constructor(private el: ElementRef) {}
+  constructor(
+    private readonly el: ElementRef
+  ) {}
 
-  ngOnInit() {
-    if (this.isOpen) {
-      document.body.style.overflow = 'hidden';
-    }
+  ngOnInit(): void {
+    this.updateBodyScroll();
   }
 
-  ngOnDestroy() {
-    document.body.style.overflow = 'unset';
+  ngOnChanges(): void {
+    this.updateBodyScroll();
   }
 
-  ngOnChanges() {
-    document.body.style.overflow = this.isOpen ? 'hidden' : 'unset';
+  ngOnDestroy(): void {
+    document.body.style.overflow = '';
   }
 
-  onBackdropClick(event: MouseEvent) {
+  private updateBodyScroll(): void {
+    document.body.style.overflow =
+      this.isOpen
+        ? 'hidden'
+        : '';
+  }
+
+  onBackdropClick(
+    event: MouseEvent
+  ): void {
+
     if (!this.isFullscreen) {
       this.close.emit();
     }
   }
 
-  onContentClick(event: MouseEvent) {
+  onContentClick(
+    event: MouseEvent
+  ): void {
     event.stopPropagation();
   }
 
- @HostListener('document:keydown.escape')
-  onEscape() {
+  @HostListener(
+    'document:keydown.escape'
+  )
+  onEscape(): void {
+
     if (this.isOpen) {
       this.close.emit();
     }

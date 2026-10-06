@@ -37,6 +37,22 @@ export const routes: Routes = [
         title: 'Sensores'
       },
       {
+        path: 'communities',
+        loadComponent: () =>
+          import('./features/administration/pages/communities/communities')
+            .then(m => m.Communities),
+        title: 'Comunidades'
+      },
+
+{
+  path: 'readings',
+  loadComponent: () =>
+    import('./features/administration/pages/readings/readings')
+      .then(m => m.Readings),
+  title: 'Lecturas'
+},
+
+      {
         path: 'alerts',
         loadComponent: () =>
           import('./features/alerts/pages/alerts/alerts')

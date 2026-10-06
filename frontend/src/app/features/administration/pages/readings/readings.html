@@ -1,0 +1,344 @@
+<app-component-card title="Lecturas de sensores">
+
+  <div class="mb-4">
+
+    <h5 class="mb-1">
+      Historial de lecturas
+    </h5>
+
+    <p class="text-muted mb-0">
+      Consulta las mediciones registradas por los sensores del sistema.
+    </p>
+
+  </div>
+
+  <!-- RESUMEN -->
+
+  <div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+      <div class="border rounded p-3 h-100">
+
+        <small class="text-muted">
+          Total de lecturas
+        </small>
+
+        <h3 class="mb-0">
+          {{ totalItems }}
+        </h3>
+
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="border rounded p-3 h-100">
+
+        <small class="text-muted">
+          Lecturas en esta página
+        </small>
+
+        <h3 class="mb-0">
+          {{ readings.length }}
+        </h3>
+
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="border rounded p-3 h-100">
+
+        <small class="text-muted">
+          Página
+        </small>
+
+        <h3 class="mb-0">
+          {{ currentPage }} / {{ totalPages || 1 }}
+        </h3>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FILTROS -->
+
+  <div class="border rounded p-3 mb-4">
+
+    <h6 class="mb-3">
+      Filtros
+    </h6>
+
+    <div class="row g-3">
+
+      <div class="col-md-6">
+
+        <label class="form-label">
+          Comunidad
+        </label>
+
+        <select
+          class="form-select"
+          [(ngModel)]="filterCommunityId">
+
+          <option [ngValue]="null">
+            Todas las comunidades
+          </option>
+
+          @for (community of communities; track community.id) {
+            <option [ngValue]="community.id">
+              {{ community.name }}
+            </option>
+          }
+
+        </select>
+
+      </div>
+
+      <div class="col-md-6">
+
+        <label class="form-label">
+          Sensor
+        </label>
+
+        <select
+          class="form-select"
+          [(ngModel)]="filterSensorId">
+
+          <option [ngValue]="null">
+            Todos los sensores
+          </option>
+
+          @for (sensor of sensors; track sensor.id) {
+            <option [ngValue]="sensor.id">
+              {{ sensor.code }} - {{ sensor.name }}
+            </option>
+          }
+
+        </select>
+
+      </div>
+
+      <div class="col-md-6">
+
+        <label class="form-label">
+          Desde
+        </label>
+
+        <input
+          type="date"
+          class="form-control"
+          [(ngModel)]="filterFrom">
+
+      </div>
+
+      <div class="col-md-6">
+
+        <label class="form-label">
+          Hasta
+        </label>
+
+        <input
+          type="date"
+          class="form-control"
+          [(ngModel)]="filterTo">
+
+      </div>
+
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="filterReadings()">
+
+        <i class="bi bi-search me-1"></i>
+        Consultar
+
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="clearFilters()">
+
+        <i class="bi bi-x-circle me-1"></i>
+        Limpiar
+
+      </button>
+
+    </div>
+
+  </div>
+
+  @if (errorMessage) {
+
+    <div class="alert alert-danger">
+      {{ errorMessage }}
+    </div>
+
+  }
+
+  <!-- TABLA -->
+
+  <div class="table-responsive">
+
+    <table class="table table-hover align-middle">
+
+      <thead>
+        <tr>
+          <th>Fecha y hora</th>
+          <th>Sensor</th>
+          <th>Tipo</th>
+          <th>Comunidad</th>
+          <th>Valor</th>
+          <th>Estado sensor</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        @if (isLoading) {
+
+          <tr>
+            <td
+              colspan="6"
+              class="text-center py-4">
+
+              <div
+                class="spinner-border spinner-border-sm me-2"
+                role="status">
+              </div>
+
+              Cargando lecturas...
+
+            </td>
+          </tr>
+
+        } @else {
+
+          @for (reading of readings; track reading.id) {
+
+            <tr>
+
+              <td>
+                {{ reading.recordedAt | date:'dd/MM/yyyy HH:mm:ss' }}
+              </td>
+
+              <td>
+
+                <strong>
+                  {{ reading.sensorCode }}
+                </strong>
+
+                <div class="small text-muted">
+                  {{ reading.sensorName }}
+                </div>
+
+              </td>
+
+              <td>
+                {{ getSensorTypeLabel(reading.sensorType) }}
+              </td>
+
+              <td>
+                {{ reading.communityName }}
+              </td>
+
+              <td>
+
+                <strong>
+                  {{ reading.value }}
+                </strong>
+
+                {{ reading.unit }}
+
+              </td>
+
+              <td>
+
+                @if (reading.sensorIsActive) {
+
+                  <span class="badge text-bg-success">
+                    Activo
+                  </span>
+
+                } @else {
+
+                  <span class="badge text-bg-secondary">
+                    Inactivo
+                  </span>
+
+                }
+
+              </td>
+
+            </tr>
+
+          } @empty {
+
+            <tr>
+              <td
+                colspan="6"
+                class="text-center text-muted py-4">
+
+                No se encontraron lecturas con los filtros seleccionados.
+
+              </td>
+            </tr>
+
+          }
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+  <!-- PAGINACIÓN -->
+
+  <div
+    class="d-flex justify-content-between align-items-center mt-3">
+
+    <span class="text-muted">
+
+      {{ totalItems }} lectura(s) encontrada(s)
+
+    </span>
+
+    <div class="d-flex align-items-center gap-2">
+
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        [disabled]="currentPage <= 1 || isLoading"
+        (click)="previousPage()">
+
+        <i class="bi bi-chevron-left"></i>
+        Anterior
+
+      </button>
+
+      <span>
+        Página {{ currentPage }} de {{ totalPages || 1 }}
+      </span>
+
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        [disabled]="currentPage >= totalPages || isLoading"
+        (click)="nextPage()">
+
+        Siguiente
+        <i class="bi bi-chevron-right"></i>
+
+      </button>
+
+    </div>
+
+  </div>
+
+</app-component-card>
