@@ -29,15 +29,16 @@ public class SensorSimulationService : BackgroundService
             ["RAINFALL"] = 3.2m,
             ["RIVER_LEVEL"] = 42m
         };
+
     private readonly Dictionary<string, decimal> _normalValues =
-    new()
-    {
-        ["TEMPERATURE"] = 27.4m,
-        ["HUMIDITY"] = 74m,
-        ["WIND_SPEED"] = 16m,
-        ["RAINFALL"] = 3.2m,
-        ["RIVER_LEVEL"] = 42m
-    };
+        new()
+        {
+            ["TEMPERATURE"] = 27.4m,
+            ["HUMIDITY"] = 74m,
+            ["WIND_SPEED"] = 16m,
+            ["RAINFALL"] = 3.2m,
+            ["RIVER_LEVEL"] = 42m
+        };
 
     public SensorSimulationService(
         IServiceScopeFactory scopeFactory,
@@ -82,10 +83,37 @@ public class SensorSimulationService : BackgroundService
 
         foreach (var sensor in sensors)
         {
-            var value = GenerateNextValue(
-                sensor.Type,
-                _simulationState.Scenario
-            );
+            decimal value;
+
+            if (_simulationState.TryGetSensorValue(
+                sensor.Id,
+                out var manualValue))
+            {
+                value = decimal.Round(
+                    manualValue,
+                    2
+                );
+
+                /*
+                 * Si el tipo de sensor forma parte de los valores
+                 * utilizados por el sistema de evaluación de riesgo,
+                 * actualizamos también su valor actual.
+                 *
+                 * De esta forma la modificación manual sigue utilizando
+                 * la lógica de alertas existente.
+                 */
+                if (_currentValues.ContainsKey(sensor.Type))
+                {
+                    _currentValues[sensor.Type] = value;
+                }
+            }
+            else
+            {
+                value = GenerateNextValue(
+                    sensor.Type,
+                    _simulationState.Scenario
+                );
+            }
 
             var reading = new SensorReading
             {
@@ -154,7 +182,10 @@ public class SensorSimulationService : BackgroundService
         string scenario)
     {
         var currentValue =
-            _currentValues.TryGetValue(sensorType, out var value)
+            _currentValues.TryGetValue(
+                sensorType,
+                out var value
+            )
                 ? value
                 : 0;
 
@@ -315,7 +346,8 @@ public class SensorSimulationService : BackgroundService
                 break;
         }
 
-        var newValue = currentValue + variation;
+        var newValue =
+            currentValue + variation;
 
         if (
             scenario == "NORMAL" &&
