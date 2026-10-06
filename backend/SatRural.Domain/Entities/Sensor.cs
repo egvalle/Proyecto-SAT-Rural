@@ -14,6 +14,12 @@ public class Sensor
 
     public string Unit { get; set; } = string.Empty;
 
+    public string? Location { get; set; }
+
+    public DateTime? InstallationDate { get; set; }
+
+    public string? Description { get; set; }
+
     public bool IsActive { get; set; } = true;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
