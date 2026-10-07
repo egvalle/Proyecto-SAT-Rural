@@ -12,6 +12,7 @@ import {
 } from '@microsoft/signalr';
 
 import { DashboardData } from '../models/dashboard.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +30,8 @@ export class MonitoringService {
     this.readingsUpdatedSubject.asObservable();
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private readonly authService: AuthService
   ) {
   }
 
@@ -112,6 +114,9 @@ export class MonitoringService {
   startSimulation(
     scenario: string
   ): Observable<any> {
+    if (!this.authService.canWrite()) {
+      return this.authService.rejectWrite();
+    }
 
     return this.http.post(
       `${this.apiUrl}/simulation`,
@@ -123,6 +128,9 @@ export class MonitoringService {
 
 
   resetSimulation(): Observable<any> {
+    if (!this.authService.canWrite()) {
+      return this.authService.rejectWrite();
+    }
 
     return this.http.post(
       `${this.apiUrl}/simulation/reset`,

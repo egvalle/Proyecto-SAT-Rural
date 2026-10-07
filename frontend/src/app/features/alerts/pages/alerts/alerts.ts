@@ -3,6 +3,7 @@ import { DatePipe } from '@angular/common';
 
 import { AlertsService } from '../../services/alerts.service';
 import { Alert } from '../../models/alert.model';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-alerts',
@@ -19,7 +20,14 @@ export class Alerts implements OnInit {
   levelFilter: string | null = null;
   activeOnly = true;
 
-  constructor(private alertsService: AlertsService) {
+  constructor(
+    private alertsService: AlertsService,
+    readonly authService: AuthService
+  ) {
+  }
+
+  get canWrite(): boolean {
+    return this.authService.canWrite();
   }
 
   ngOnInit(): void {
@@ -55,6 +63,10 @@ export class Alerts implements OnInit {
   }
 
   resolve(alert: Alert): void {
+    if (!this.canWrite) {
+      return;
+    }
+
     this.alertsService.resolveAlert(alert.id).subscribe({
       next: () => this.loadAlerts()
     });

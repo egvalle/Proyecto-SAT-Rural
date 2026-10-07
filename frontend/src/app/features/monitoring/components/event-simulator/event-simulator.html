@@ -15,89 +15,89 @@
 
   </div>
 
-  <div class="p-4">
+  @if (canWrite) {
+    <div class="p-4">
 
-    <label
-      for="scenario"
-      class="form-label">
+      <label
+        for="scenario"
+        class="form-label">
 
-      Escenario de demostración
+        Escenario de demostración
 
-    </label>
+      </label>
 
-    <select
-      id="scenario"
-      class="form-select"
-      [(ngModel)]="scenario">
+      <select
+        id="scenario"
+        class="form-select"
+        [(ngModel)]="scenario">
 
-      <option value="NORMAL">
-        Condiciones normales
-      </option>
+        <option value="NORMAL">
+          Condiciones normales
+        </option>
 
-      <option value="HEAVY_RAIN">
-        Lluvia intensa
-      </option>
+        <option value="HEAVY_RAIN">
+          Lluvia intensa
+        </option>
 
-      <option value="STORM">
-        Tormenta
-      </option>
+        <option value="STORM">
+          Tormenta
+        </option>
 
-      <option value="FLOOD">
-        Riesgo de inundación
-      </option>
+        <option value="FLOOD">
+          Riesgo de inundación
+        </option>
 
-      <option value="DROUGHT">
-        Sequía
-      </option>
+        <option value="DROUGHT">
+          Sequía
+        </option>
 
-      <option value="FROST">
-        Helada
-      </option>
+        <option value="FROST">
+          Helada
+        </option>
 
-      <option value="FOREST_FIRE">
-        Incendio forestal
-      </option>
+        <option value="FOREST_FIRE">
+          Incendio forestal
+        </option>
 
-    </select>
+      </select>
 
+      <div
+        class="d-flex
+               flex-column flex-sm-row
+               gap-2 mt-3">
 
-    <div
-      class="d-flex
-             flex-column flex-sm-row
-             gap-2 mt-3">
+        <button
+          type="button"
+          class="btn btn-success"
+          [disabled]="running"
+          (click)="run()">
 
-      <button
-        type="button"
-        class="btn btn-success"
-        [disabled]="running"
-        (click)="run()">
+          <i class="bi bi-play-fill me-1"></i>
+          Ejecutar escenario
 
-        <i class="bi bi-play-fill me-1"></i>
+        </button>
 
-        Ejecutar escenario
+        <button
+          type="button"
+          class="btn btn-light"
+          (click)="reset()">
 
-      </button>
+          <i class="bi bi-arrow-counterclockwise me-1"></i>
+          Reiniciar
 
-      <button
-        type="button"
-        class="btn btn-light"
-        (click)="reset()">
+        </button>
 
-        <i class="bi bi-arrow-counterclockwise me-1"></i>
+      </div>
 
-        Reiniciar
-
-      </button>
-
-    </div>
-
-
-    <div class="simulation-message mt-3">
-
-      {{ message }}
+      <div class="simulation-message mt-3">
+        {{ message }}
+      </div>
 
     </div>
-
-  </div>
+  } @else {
+    <div class="p-4">
+      <p class="mb-0" role="status">Modo de solo lectura.</p>
+    </div>
+  }
 
 </section>

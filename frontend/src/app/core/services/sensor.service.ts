@@ -1,4 +1,5 @@
 import { environment } from '../../../environments/environment';
+import { AuthService } from './auth.service';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Sensor } from '../../core/models/sensor';
@@ -24,10 +25,15 @@ export class SensorService {
     `${environment.apiBaseUrl}/api/sensors`;
 
   constructor(
-    private readonly http: HttpClient
+    private readonly http: HttpClient,
+    private readonly authService: AuthService
   ) {}
 
   createSensor(sensor: Sensor): Observable<unknown> {
+    if (!this.authService.canWrite()) {
+      return this.authService.rejectWrite();
+    }
+
     return this.http.post<unknown>(
       this.sensorsUrl,
       sensor

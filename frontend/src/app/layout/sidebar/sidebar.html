@@ -44,34 +44,37 @@
     Alertas
     </a>
 
-    <a class="disabled-link" (click)="$event.preventDefault()">
-    <i class="bi bi-clock-history"></i>
-    Historial
-    </a>
+    <!-- @if (authService.getRoleId() == 1) { -->
+      <a  (click)="$event.preventDefault()">
+      <i class="bi bi-clock-history"></i>
+      Historial
+      </a>
 
-    <a class="disabled-link" (click)="$event.preventDefault()">
-    <i class="bi bi-geo-alt"></i>
-    Comunidades
-    </a>
+      <a  (click)="$event.preventDefault()">
+      <i class="bi bi-geo-alt"></i>
+      Comunidades
+      </a>
+      
+      @if (authService.getRoleId() == 1) {
+      <p class="section-title admin-title">
+        ADMINISTRACIÓN
+      </p>
 
-    <p class="section-title admin-title">
-      ADMINISTRACIÓN
-    </p>
+      <a  (click)="$event.preventDefault()">
+      <i class="bi bi-gear"></i>
+      Configuración
+      </a>
 
-    <a class="disabled-link" (click)="$event.preventDefault()">
-    <i class="bi bi-gear"></i>
-    Configuración
-    </a>
+      <a (click)="$event.preventDefault()">
+      <i class="bi bi-people"></i>
+      Usuarios
+      </a>
 
-    <a class="disabled-link" (click)="$event.preventDefault()">
-    <i class="bi bi-people"></i>
-    Usuarios
-    </a>
-
-    <a class="disabled-link" (click)="$event.preventDefault()">
-    <i class="bi bi-list-check"></i>
-    Bitácora
-    </a>
+      <a  (click)="$event.preventDefault()">
+      <i class="bi bi-list-check"></i>
+      Bitácora
+      </a>
+    }
 
   </nav>
 

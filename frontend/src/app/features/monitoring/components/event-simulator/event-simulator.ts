@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 
 import { MonitoringService }
   from '../../services/monitoring.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-event-simulator',
@@ -23,12 +24,21 @@ export class EventSimulator {
     'El simulador está en espera. Seleccione un escenario para demostrar el comportamiento del sistema.';
 
   constructor(
-    private monitoringService: MonitoringService
+    private monitoringService: MonitoringService,
+    readonly authService: AuthService
   ) {
+  }
+
+  get canWrite(): boolean {
+    return this.authService.canWrite();
   }
 
 
   run(): void {
+    if (!this.canWrite) {
+      this.message = 'No posee permisos para modificar la información.';
+      return;
+    }
 
     this.running = true;
 
@@ -60,6 +70,11 @@ export class EventSimulator {
 
 
   reset(): void {
+    if (!this.canWrite) {
+      this.message = 'No posee permisos para modificar la información.';
+      return;
+    }
+
 
     this.monitoringService
       .resetSimulation()

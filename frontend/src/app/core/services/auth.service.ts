@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap } from 'rxjs';
+import { Observable, BehaviorSubject, tap, throwError } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 
@@ -27,6 +27,7 @@ export class AuthService {
   private readonly loginUrl = `${environment.apiBaseUrl}/api/auth/login`;
   private readonly tokenKey = 'sat-rural-auth-token';
   private readonly roleKey = 'sat-rural-user-role';
+  private readonly roleIdKey = 'sat-rural-user-role-id';
   private readonly authenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
 
   readonly isAuthenticated$ = this.authenticatedSubject.asObservable();
@@ -42,11 +43,16 @@ export class AuthService {
           const storage = rememberSession ? localStorage : sessionStorage;
           storage.setItem(this.tokenKey, token);
           const role = response.user?.roleDescription ?? response.user?.role;
-          if (role) {
-            storage.setItem(this.roleKey, role);
+        
+          console.log('Role ID:', response.user?.roleId);
+       
+        
+          if (response.user?.roleId !== undefined) {
+            storage.setItem(this.roleIdKey, String(response.user.roleId));
           }
           this.authenticatedSubject.next(true);
         }
+         console.log('Role ID:', response.user?.roleId);
       })
     );
   }
@@ -56,11 +62,40 @@ export class AuthService {
     sessionStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.roleKey);
     sessionStorage.removeItem(this.roleKey);
+    localStorage.removeItem(this.roleIdKey);
+    sessionStorage.removeItem(this.roleIdKey);
     this.authenticatedSubject.next(false);
   }
 
   getRole(): string | null {
     return localStorage.getItem(this.roleKey) ?? sessionStorage.getItem(this.roleKey);
+  }
+
+  getRoleId(): number | null {
+    const value = localStorage.getItem(this.roleIdKey) ?? sessionStorage.getItem(this.roleIdKey);
+    if (value === null) {
+      return null;
+    }
+
+    const roleId = Number(value);
+    return Number.isInteger(roleId) ? roleId : null;
+  }
+
+  canAccessRoute(url: string): boolean {
+    if (this.getRoleId() !== 2) {
+      return true;
+    }
+
+    const path = url.split(/[?#]/, 1)[0];
+    return ['/dashboard', '/sensors', '/alerts'].includes(path);
+  }
+
+  canWrite(): boolean {
+    return this.getRoleId() !== 3;
+  }
+
+  rejectWrite<T>(): Observable<T> {
+    return throwError(() => new Error('No posee permisos para guardar información.'));
   }
 
   isAuthenticated(): boolean {

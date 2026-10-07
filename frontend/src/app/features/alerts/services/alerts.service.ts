@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { AuthService } from '../../../core/services/auth.service';
 import { Alert } from '../models/alert.model';
 
 @Injectable({
@@ -11,7 +12,10 @@ export class AlertsService {
 
  private readonly apiUrl = '/api/alerts';
 
- constructor(private http: HttpClient) {
+ constructor(
+  private http: HttpClient,
+  private authService: AuthService
+ ) {
  }
 
  getAlerts(
@@ -33,6 +37,10 @@ export class AlertsService {
  }
 
  resolveAlert(id: number): Observable<{ message: string }> {
+ if (!this.authService.canWrite()) {
+ return this.authService.rejectWrite();
+ }
+
  return this.http.patch<{ message: string }>(
  `${this.apiUrl}/${id}/resolve`,
  {}

@@ -32,9 +32,13 @@ export class Sensors {
   sensorListError = '';
 
   constructor(
-    private readonly authService: AuthService,
+    readonly authService: AuthService,
     private readonly sensorService: SensorService
   ) {}
+
+  get canWrite(): boolean {
+    return this.authService.canWrite();
+  }
 
   filterSensors(): void {
     this.sensorListError = '';
@@ -72,7 +76,7 @@ export class Sensors {
     this.saveMessage = '';
     this.saveError = '';
 
-    if (this.authService.getRole() !== 'ADMIN') {
+    if (!this.canWrite) {
       this.saveError = 'No posee los permisos suficientes.';
       return;
     }

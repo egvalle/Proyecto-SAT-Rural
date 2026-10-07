@@ -45,20 +45,26 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = "Password must contain at least 8 characters." });
         }
 
+        var role = await _dbContext.Roles
+            .SingleOrDefaultAsync(role => role.Id == request.RoleId);
+        if (role is null)
+        {
+            return BadRequest(new
+            {
+                message = $"RoleId must be {Rol.AdminId} (ADMIN), {Rol.UserId} (USER), or {Rol.UserConsultaId} (USERCONSULTA)."
+            });
+        }
+
         if (await _dbContext.Users.AnyAsync(user => user.Username == username))
         {
             return Conflict(new { message = "Username is already registered." });
         }
-
-        var role = await _dbContext.Roles
-            .SingleAsync(role => role.Id == Rol.UserId);
 
         var user = new User
         {
             Username = username,
             FullName = fullName,
             RolId = role.Id,
-            Rol = role,
             IsActive = true
         };
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
@@ -66,7 +72,62 @@ public class AuthController : ControllerBase
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
 
-        return StatusCode(StatusCodes.Status201Created, CreateAuthResponse(user));
+        return StatusCode(
+            StatusCodes.Status201Created,
+            CreateAuthResponse(user, role.Descripcion));
+    }
+
+    [Authorize]
+    [HttpGet("admin/users")]
+    public async Task<ActionResult<IReadOnlyList<AdminUserResponse>>> GetAdminUsers(
+        CancellationToken cancellationToken)
+    {
+        if (!await IsCurrentUserAdminAsync())
+        {
+            return Forbid();
+        }
+
+        var users = await (
+            from user in _dbContext.Users.AsNoTracking()
+            join role in _dbContext.Roles.AsNoTracking()
+                on user.RolId equals role.Id
+            orderby user.Id
+            select new AdminUserResponse(
+                user.Id,
+                user.Username,
+                user.FullName,
+                user.RolId,
+                role.Descripcion,
+                user.IsActive,
+                user.CreatedAt))
+            .ToListAsync(cancellationToken);
+
+        return Ok(users);
+    }
+
+    [Authorize]
+    [HttpGet("admin/users/{id:int}")]
+    public async Task<ActionResult<UserResponse>> GetAdminUser(int id)
+    {
+        if (!await IsCurrentUserAdminAsync())
+        {
+            return Forbid();
+        }
+
+        var user = await _dbContext.Users
+            .AsNoTracking()
+            .SingleOrDefaultAsync(candidate => candidate.Id == id);
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        var roleDescription = await _dbContext.Roles
+            .Where(role => role.Id == user.RolId)
+            .Select(role => role.Descripcion)
+            .SingleAsync();
+
+        return Ok(ToUserResponse(user, roleDescription));
     }
 
     [HttpPost("login")]
@@ -74,7 +135,6 @@ public class AuthController : ControllerBase
     {
         var username = request.Username.Trim().ToLowerInvariant();
         var user = await _dbContext.Users
-            .Include(candidate => candidate.Rol)
             .SingleOrDefaultAsync(candidate => candidate.Username == username && candidate.IsActive);
 
         if (user is null ||
@@ -84,7 +144,8 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid username or password." });
         }
 
-        return Ok(CreateAuthResponse(user));
+        var roleDescription = await GetRoleDescriptionAsync(user.RolId);
+        return Ok(CreateAuthResponse(user, roleDescription));
     }
 
     [Authorize]
@@ -100,13 +161,35 @@ public class AuthController : ControllerBase
 
         var user = await _dbContext.Users
             .AsNoTracking()
-            .Include(candidate => candidate.Rol)
             .SingleOrDefaultAsync(candidate => candidate.Id == userId && candidate.IsActive);
 
-        return user is null ? Unauthorized() : Ok(ToUserResponse(user));
+        if (user is null)
+        {
+            return Unauthorized();
+        }
+
+        var roleDescription = await GetRoleDescriptionAsync(user.RolId);
+        return Ok(ToUserResponse(user, roleDescription));
     }
 
-    private AuthResponse CreateAuthResponse(User user)
+    private async Task<bool> IsCurrentUserAdminAsync()
+    {
+        var subject = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(subject, out var userId) &&
+            await _dbContext.Users.AnyAsync(candidate =>
+                candidate.Id == userId &&
+                candidate.IsActive &&
+                candidate.RolId == Rol.AdminId);
+    }
+
+    private Task<string> GetRoleDescriptionAsync(int roleId) =>
+        _dbContext.Roles
+            .Where(role => role.Id == roleId)
+            .Select(role => role.Descripcion)
+            .SingleAsync();
+
+    private AuthResponse CreateAuthResponse(User user, string roleDescription)
     {
         var key = _configuration["Jwt:Key"]!;
         var issuer = _configuration["Jwt:Issuer"]!;
@@ -119,7 +202,7 @@ public class AuthController : ControllerBase
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
             new Claim(ClaimTypes.Name, user.FullName),
-            new Claim(ClaimTypes.Role, user.Rol.Descripcion)
+            new Claim(ClaimTypes.Role, roleDescription),
         };
         var credentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
@@ -131,14 +214,16 @@ public class AuthController : ControllerBase
             expires: expiresAt,
             signingCredentials: credentials);
 
-        return new AuthResponse(new JwtSecurityTokenHandler().WriteToken(token), ToUserResponse(user));
+        return new AuthResponse(
+            new JwtSecurityTokenHandler().WriteToken(token),
+            ToUserResponse(user, roleDescription));
     }
 
-    private static UserResponse ToUserResponse(User user) =>
-        new(user.Id, user.Username, user.FullName, user.RolId, user.Rol.Descripcion);
+    private static UserResponse ToUserResponse(User user, string roleDescription) =>
+        new(user.Id, user.Username, user.FullName, user.RolId, roleDescription);
 }
 
-public sealed record RegisterRequest(string Username, string Password, string FullName);
+public sealed record RegisterRequest(string Username, string Password, string FullName, int RoleId);
 
 public sealed record LoginRequest(string Username, string Password);
 
@@ -148,5 +233,14 @@ public sealed record UserResponse(
     string FullName,
     int RoleId,
     string RoleDescription);
+
+public sealed record AdminUserResponse(
+    int Id,
+    string Username,
+    string FullName,
+    int RoleId,
+    string RoleDescription,
+    bool IsActive,
+    DateTime CreatedAt);
 
 public sealed record AuthResponse(string Token, UserResponse User);
