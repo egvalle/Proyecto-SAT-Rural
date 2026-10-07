@@ -10,6 +10,9 @@ using SatRural.Application.Modules.Monitoring.Services;
 using SatRural.Api.Hubs;
 using SatRural.Api.Realtime;
 using SatRural.Application.Modules.Monitoring.Interfaces;
+using SatRural.Infrastructure.Persistence.Repositories;
+using SatRural.Application.Modules.Audit.Interfaces;
+using SatRural.Application.Modules.Audit.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +67,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Health Checks
 builder.Services.AddHealthChecks();
 builder.Services.AddScoped<RiskEvaluationService>();
+builder.Services.AddScoped<IAlertRuleRepository, AlertRuleRepository>();
+builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 builder.Services.AddSignalR();
 

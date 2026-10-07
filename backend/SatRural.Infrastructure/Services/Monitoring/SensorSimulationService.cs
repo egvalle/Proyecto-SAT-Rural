@@ -125,7 +125,7 @@ public class SensorSimulationService : BackgroundService
             dbContext.SensorReadings.Add(reading);
         }
 
-        var risk = riskEvaluationService.Evaluate(
+        var risk = await riskEvaluationService.EvaluateAsync(
             _currentValues["TEMPERATURE"],
             _currentValues["HUMIDITY"],
             _currentValues["WIND_SPEED"],
@@ -145,7 +145,7 @@ public class SensorSimulationService : BackgroundService
                     CommunityId = 1,
                     SensorId = null,
 
-                    Type = _simulationState.Scenario,
+                    Type = risk.Phenomenon,
 
                     Level = risk.Level
                         .ToString()

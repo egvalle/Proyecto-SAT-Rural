@@ -66,7 +66,7 @@ public class MonitoringController : ControllerBase
             .DefaultIfEmpty(DateTime.UtcNow)
             .Max();
 
-        var risk = _riskEvaluationService.Evaluate(
+        var risk = await _riskEvaluationService.EvaluateAsync(
             temperature,
             humidity,
             windSpeed,

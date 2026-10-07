@@ -3,39 +3,40 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Alert } from '../models/alert.model';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
- providedIn: 'root'
+  providedIn: 'root'
 })
 export class AlertsService {
 
- private readonly apiUrl = '/api/alerts';
+  private readonly apiUrl = `${environment.apiBaseUrl}/api/alerts`;
 
- constructor(private http: HttpClient) {
- }
+  constructor(private http: HttpClient) {
+  }
 
- getAlerts(
- level?: string,
- isActive?: boolean
- ): Observable<Alert[]> {
+  getAlerts(
+    level?: string,
+    isActive?: boolean
+  ): Observable<Alert[]> {
 
- const params: Record<string, string> = {};
+    const params: Record<string, string> = {};
 
- if (level) {
- params['level'] = level;
- }
+    if (level) {
+      params['level'] = level;
+    }
 
- if (isActive !== undefined) {
- params['isActive'] = String(isActive);
- }
+    if (isActive !== undefined) {
+      params['isActive'] = String(isActive);
+    }
 
- return this.http.get<Alert[]>(this.apiUrl, { params });
- }
+    return this.http.get<Alert[]>(this.apiUrl, { params });
+  }
 
- resolveAlert(id: number): Observable<{ message: string }> {
- return this.http.patch<{ message: string }>(
- `${this.apiUrl}/${id}/resolve`,
- {}
- );
- }
+  resolveAlert(id: number): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(
+      `${this.apiUrl}/${id}/resolve`,
+      {}
+    );
+  }
 }

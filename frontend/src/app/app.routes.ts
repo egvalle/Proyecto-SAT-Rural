@@ -44,13 +44,13 @@ export const routes: Routes = [
         title: 'Comunidades'
       },
 
-{
-  path: 'readings',
-  loadComponent: () =>
-    import('./features/administration/pages/readings/readings')
-      .then(m => m.Readings),
-  title: 'Lecturas'
-},
+      {
+        path: 'readings',
+        loadComponent: () =>
+          import('./features/administration/pages/readings/readings')
+            .then(m => m.Readings),
+        title: 'Lecturas'
+      },
 
       {
         path: 'alerts',
@@ -58,6 +58,13 @@ export const routes: Routes = [
           import('./features/alerts/pages/alerts/alerts')
             .then(m => m.Alerts),
         title: 'Alertas'
+      },
+      {
+        path: 'alert-rules',
+        loadComponent: () =>
+          import('./features/administration/pages/alert-rules/alert-rules')
+            .then(m => m.AlertRules),
+        title: 'Reglas de alertas'
       },
       {
         path: 'history',
