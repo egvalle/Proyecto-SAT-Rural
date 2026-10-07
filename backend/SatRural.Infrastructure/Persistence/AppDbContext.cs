@@ -33,6 +33,9 @@ public class AppDbContext : DbContext
     public DbSet<User> Users =>
         Set<User>();
 
+    public DbSet<Rol> Roles =>
+        Set<Rol>();
+
     public DbSet<AuditLog> AuditLogs =>
         Set<AuditLog>();
 

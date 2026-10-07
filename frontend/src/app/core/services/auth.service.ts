@@ -13,6 +13,8 @@ export interface LoginResponse {
   token?: string;
   accessToken?: string;
   user?: {
+    roleId?: number;
+    roleDescription?: string;
     role?: string;
   };
   [key: string]: unknown;
@@ -39,8 +41,9 @@ export class AuthService {
         if (token) {
           const storage = rememberSession ? localStorage : sessionStorage;
           storage.setItem(this.tokenKey, token);
-          if (response.user?.role) {
-            storage.setItem(this.roleKey, response.user.role);
+          const role = response.user?.roleDescription ?? response.user?.role;
+          if (role) {
+            storage.setItem(this.roleKey, role);
           }
           this.authenticatedSubject.next(true);
         }

@@ -50,11 +50,15 @@ public class AuthController : ControllerBase
             return Conflict(new { message = "Username is already registered." });
         }
 
+        var role = await _dbContext.Roles
+            .SingleAsync(role => role.Id == Rol.UserId);
+
         var user = new User
         {
             Username = username,
             FullName = fullName,
-            Role = "USER",
+            RolId = role.Id,
+            Rol = role,
             IsActive = true
         };
         user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
@@ -70,6 +74,7 @@ public class AuthController : ControllerBase
     {
         var username = request.Username.Trim().ToLowerInvariant();
         var user = await _dbContext.Users
+            .Include(candidate => candidate.Rol)
             .SingleOrDefaultAsync(candidate => candidate.Username == username && candidate.IsActive);
 
         if (user is null ||
@@ -95,6 +100,7 @@ public class AuthController : ControllerBase
 
         var user = await _dbContext.Users
             .AsNoTracking()
+            .Include(candidate => candidate.Rol)
             .SingleOrDefaultAsync(candidate => candidate.Id == userId && candidate.IsActive);
 
         return user is null ? Unauthorized() : Ok(ToUserResponse(user));
@@ -113,7 +119,7 @@ public class AuthController : ControllerBase
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
             new Claim(ClaimTypes.Name, user.FullName),
-            new Claim(ClaimTypes.Role, user.Role)
+            new Claim(ClaimTypes.Role, user.Rol.Descripcion)
         };
         var credentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
@@ -129,13 +135,18 @@ public class AuthController : ControllerBase
     }
 
     private static UserResponse ToUserResponse(User user) =>
-        new(user.Id, user.Username, user.FullName, user.Role);
+        new(user.Id, user.Username, user.FullName, user.RolId, user.Rol.Descripcion);
 }
 
 public sealed record RegisterRequest(string Username, string Password, string FullName);
 
 public sealed record LoginRequest(string Username, string Password);
 
-public sealed record UserResponse(int Id, string Username, string FullName, string Role);
+public sealed record UserResponse(
+    int Id,
+    string Username,
+    string FullName,
+    int RoleId,
+    string RoleDescription);
 
 public sealed record AuthResponse(string Token, UserResponse User);

@@ -217,6 +217,44 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.ToTable("Events");
                 });
 
+            modelBuilder.Entity("SatRural.Domain.Entities.Rol", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Descripcion")
+                        .IsUnique();
+
+                    b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Descripcion = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Descripcion = "USER"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Descripcion = "USERCONSULTA"
+                        });
+                });
+
             modelBuilder.Entity("SatRural.Domain.Entities.Sensor", b =>
                 {
                     b.Property<int>("Id")
@@ -368,15 +406,16 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("RolId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RolId");
 
                     b.ToTable("Users");
                 });
@@ -448,6 +487,17 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.Navigation("Sensor");
                 });
 
+            modelBuilder.Entity("SatRural.Domain.Entities.User", b =>
+                {
+                    b.HasOne("SatRural.Domain.Entities.Rol", "Rol")
+                        .WithMany("Users")
+                        .HasForeignKey("RolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rol");
+                });
+
             modelBuilder.Entity("SatRural.Domain.Entities.Alert", b =>
                 {
                     b.Navigation("Events");
@@ -460,6 +510,11 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.Navigation("Events");
 
                     b.Navigation("Sensors");
+                });
+
+            modelBuilder.Entity("SatRural.Domain.Entities.Rol", b =>
+                {
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.Sensor", b =>
