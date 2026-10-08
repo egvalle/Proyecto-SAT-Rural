@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SatRural.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using SatRural.Infrastructure.Persistence;
 namespace SatRural.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820061834_SeedInitialMonitoringData")]
+    partial class SeedInitialMonitoringData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,225 +69,6 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.ToTable("Alerts");
                 });
 
-            modelBuilder.Entity("SatRural.Domain.Entities.AlertRule", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Operator")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Phenomenon")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RiskLevel")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SensorType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("ThresholdValue")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AlertRules");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Temperatura elevada",
-                            Operator = ">=",
-                            Phenomenon = "Ola de calor",
-                            RiskLevel = "YELLOW",
-                            SensorType = "TEMPERATURE",
-                            ThresholdValue = 32m
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Temperatura muy elevada",
-                            Operator = ">=",
-                            Phenomenon = "Ola de calor",
-                            RiskLevel = "ORANGE",
-                            SensorType = "TEMPERATURE",
-                            ThresholdValue = 35m
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Temperatura extremadamente elevada",
-                            Operator = ">=",
-                            Phenomenon = "Ola de calor",
-                            RiskLevel = "RED",
-                            SensorType = "TEMPERATURE",
-                            ThresholdValue = 38m
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Description = "Temperatura baja",
-                            Operator = "<=",
-                            Phenomenon = "Helada",
-                            RiskLevel = "YELLOW",
-                            SensorType = "TEMPERATURE",
-                            ThresholdValue = 8m
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Description = "Temperatura muy baja",
-                            Operator = "<=",
-                            Phenomenon = "Helada",
-                            RiskLevel = "ORANGE",
-                            SensorType = "TEMPERATURE",
-                            ThresholdValue = 4m
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Description = "Temperatura extremadamente baja",
-                            Operator = "<=",
-                            Phenomenon = "Helada",
-                            RiskLevel = "RED",
-                            SensorType = "TEMPERATURE",
-                            ThresholdValue = 0m
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Description = "Humedad baja",
-                            Operator = "<=",
-                            Phenomenon = "Sequía",
-                            RiskLevel = "YELLOW",
-                            SensorType = "HUMIDITY",
-                            ThresholdValue = 40m
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Description = "Humedad muy baja",
-                            Operator = "<=",
-                            Phenomenon = "Sequía",
-                            RiskLevel = "ORANGE",
-                            SensorType = "HUMIDITY",
-                            ThresholdValue = 30m
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Description = "Humedad extremadamente baja",
-                            Operator = "<=",
-                            Phenomenon = "Sequía",
-                            RiskLevel = "RED",
-                            SensorType = "HUMIDITY",
-                            ThresholdValue = 20m
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Description = "Velocidad del viento elevada",
-                            Operator = ">=",
-                            Phenomenon = "Tormenta",
-                            RiskLevel = "YELLOW",
-                            SensorType = "WIND_SPEED",
-                            ThresholdValue = 30m
-                        },
-                        new
-                        {
-                            Id = 11,
-                            Description = "Velocidad del viento muy elevada",
-                            Operator = ">=",
-                            Phenomenon = "Tormenta",
-                            RiskLevel = "ORANGE",
-                            SensorType = "WIND_SPEED",
-                            ThresholdValue = 50m
-                        },
-                        new
-                        {
-                            Id = 12,
-                            Description = "Velocidad del viento extremadamente elevada",
-                            Operator = ">=",
-                            Phenomenon = "Tormenta",
-                            RiskLevel = "RED",
-                            SensorType = "WIND_SPEED",
-                            ThresholdValue = 70m
-                        },
-                        new
-                        {
-                            Id = 13,
-                            Description = "Nivel de lluvia elevado",
-                            Operator = ">=",
-                            Phenomenon = "Inundación",
-                            RiskLevel = "YELLOW",
-                            SensorType = "RAINFALL",
-                            ThresholdValue = 15m
-                        },
-                        new
-                        {
-                            Id = 14,
-                            Description = "Nivel de lluvia muy elevado",
-                            Operator = ">=",
-                            Phenomenon = "Inundación",
-                            RiskLevel = "ORANGE",
-                            SensorType = "RAINFALL",
-                            ThresholdValue = 30m
-                        },
-                        new
-                        {
-                            Id = 15,
-                            Description = "Nivel de lluvia extremadamente elevado",
-                            Operator = ">=",
-                            Phenomenon = "Inundación",
-                            RiskLevel = "RED",
-                            SensorType = "RAINFALL",
-                            ThresholdValue = 50m
-                        },
-                        new
-                        {
-                            Id = 16,
-                            Description = "Nivel del río elevado",
-                            Operator = ">=",
-                            Phenomenon = "Inundación",
-                            RiskLevel = "YELLOW",
-                            SensorType = "RIVER_LEVEL",
-                            ThresholdValue = 60m
-                        },
-                        new
-                        {
-                            Id = 17,
-                            Description = "Nivel del río muy elevado",
-                            Operator = ">=",
-                            Phenomenon = "Inundación",
-                            RiskLevel = "ORANGE",
-                            SensorType = "RIVER_LEVEL",
-                            ThresholdValue = 75m
-                        },
-                        new
-                        {
-                            Id = 18,
-                            Description = "Nivel del río extremadamente elevado",
-                            Operator = ">=",
-                            Phenomenon = "Inundación",
-                            RiskLevel = "RED",
-                            SensorType = "RIVER_LEVEL",
-                            ThresholdValue = 90m
-                        });
-                });
-
             modelBuilder.Entity("SatRural.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<long>("Id")
@@ -330,22 +114,8 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Department")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -357,11 +127,6 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.Property<decimal?>("Longitude")
                         .HasPrecision(9, 6)
                         .HasColumnType("decimal(9,6)");
-
-                    b.Property<string>("Municipality")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -376,14 +141,10 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = 1,
-                            Country = "Guatemala",
                             CreatedAt = new DateTime(2026, 8, 20, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Department = "Guatemala",
-                            Description = "Comunidad inicial del sistema de monitoreo.",
                             IsActive = true,
                             Latitude = 14.634915m,
                             Longitude = -90.506882m,
-                            Municipality = "Guatemala",
                             Name = "Comunidad El Pinar"
                         });
                 });
@@ -422,44 +183,6 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.ToTable("Events");
                 });
 
-            modelBuilder.Entity("SatRural.Domain.Entities.Rol", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Descripcion")
-                        .IsUnique();
-
-                    b.ToTable("Roles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Descripcion = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Descripcion = "USER"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Descripcion = "USERCONSULTA"
-                        });
-                });
-
             modelBuilder.Entity("SatRural.Domain.Entities.Sensor", b =>
                 {
                     b.Property<int>("Id")
@@ -479,19 +202,8 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime?>("InstallationDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Location")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -590,7 +302,6 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Value")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -622,16 +333,15 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RolId")
-                        .HasColumnType("int");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RolId");
 
                     b.ToTable("Users");
                 });
@@ -703,15 +413,6 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.Navigation("Sensor");
                 });
 
-            modelBuilder.Entity("SatRural.Domain.Entities.User", b =>
-                {
-                    b.HasOne("SatRural.Domain.Entities.Rol", null)
-                        .WithMany("Users")
-                        .HasForeignKey("RolId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("SatRural.Domain.Entities.Alert", b =>
                 {
                     b.Navigation("Events");
@@ -724,11 +425,6 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.Navigation("Events");
 
                     b.Navigation("Sensors");
-                });
-
-            modelBuilder.Entity("SatRural.Domain.Entities.Rol", b =>
-                {
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.Sensor", b =>

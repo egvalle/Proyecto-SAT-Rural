@@ -98,6 +98,7 @@
       </p>
 
       <a
+        class="disabled-link"
         (click)="$event.preventDefault()">
 
         <i class="bi bi-gear"></i>
@@ -106,6 +107,20 @@
       </a>
 
       <a
+        routerLink="/alert-rules"
+        routerLinkActive="active"
+        (click)="close()">
+
+        <i class="bi bi-sliders"></i>
+
+        <span>
+          Reglas de alertas
+        </span>
+
+      </a>
+
+      <a
+        class="disabled-link"
         (click)="$event.preventDefault()">
 
         <i class="bi bi-people"></i>
