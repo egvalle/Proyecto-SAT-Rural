@@ -34,7 +34,7 @@ export class SensorService {
     `${environment.apiBaseUrl}/api/Monitoring`;
 
   constructor(
-    private readonly http: HttpClient
+    private readonly http: HttpClient,
   ) {}
 
   getSensors(

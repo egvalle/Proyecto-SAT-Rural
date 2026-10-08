@@ -50,7 +50,7 @@
       Sensores
 
     </a>
-    
+
     <a
       routerLink="/readings"
       routerLinkActive="active"
@@ -60,7 +60,6 @@
       Lecturas
 
     </a>
-
 
     <a
       routerLink="/communities"
@@ -92,49 +91,38 @@
 
     </a>
 
-    <p class="section-title admin-title">
-      ADMINISTRACIÓN
-    </p>
+    @if (authService.getRoleId() == 1) {
 
-    <a
-      class="disabled-link"
-      (click)="$event.preventDefault()">
+      <p class="section-title admin-title">
+        ADMINISTRACIÓN
+      </p>
 
-      <i class="bi bi-gear"></i>
-      Configuración
+      <a
+        (click)="$event.preventDefault()">
 
-    </a>
+        <i class="bi bi-gear"></i>
+        Configuración
 
-    <a
-      routerLink="/alert-rules"
-      routerLinkActive="active"
-      (click)="close()">
+      </a>
 
-      <i class="bi bi-sliders"></i>
+      <a
+        (click)="$event.preventDefault()">
 
-      <span>
-        Reglas de alertas
-      </span>
+        <i class="bi bi-people"></i>
+        Usuarios
 
-    </a>
+      </a>
 
-    <a
-      class="disabled-link"
-      (click)="$event.preventDefault()">
+      <a
+        class="disabled-link"
+        (click)="$event.preventDefault()">
 
-      <i class="bi bi-people"></i>
-      Usuarios
+        <i class="bi bi-list-check"></i>
+        Bitácora
 
-    </a>
+      </a>
 
-    <a
-      class="disabled-link"
-      (click)="$event.preventDefault()">
-
-      <i class="bi bi-list-check"></i>
-      Bitácora
-
-    </a>
+    }
 
   </nav>
 
