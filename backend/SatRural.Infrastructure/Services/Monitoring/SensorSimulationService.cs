@@ -160,6 +160,17 @@ public class SensorSimulationService : BackgroundService
 
                 dbContext.Alerts.Add(alert);
 
+                var eventItem = new Event
+                {
+                    Alert = alert,
+                    CommunityId = alert.CommunityId,
+                    EventType = risk.Phenomenon,
+                    Description = risk.Message,
+                    OccurredAt = alert.CreatedAt
+                };
+
+                dbContext.Events.Add(eventItem);
+
                 _lastAlertKey = alertKey;
             }
         }

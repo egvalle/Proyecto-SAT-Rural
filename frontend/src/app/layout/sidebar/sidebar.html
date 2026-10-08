@@ -50,15 +50,16 @@
       Sensores
 
     </a>
-<a
-  routerLink="/readings"
-  routerLinkActive="active"
-  (click)="close()">
+    
+    <a
+      routerLink="/readings"
+      routerLinkActive="active"
+      (click)="close()">
 
-  <i class="bi bi-activity"></i>
-  Lecturas
+      <i class="bi bi-activity"></i>
+      Lecturas
 
-</a>
+    </a>
 
 
     <a
@@ -82,8 +83,9 @@
     </a>
 
     <a
-      class="disabled-link"
-      (click)="$event.preventDefault()">
+      routerLink="/history"
+      routerLinkActive="active"
+      (click)="close()">
 
       <i class="bi bi-clock-history"></i>
       Historial

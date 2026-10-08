@@ -63,7 +63,7 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SensorId");
 
-                    b.ToTable("Alerts");
+                    b.ToTable("Alerts", (string)null);
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.AlertRule", b =>
@@ -100,7 +100,7 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AlertRules");
+                    b.ToTable("AlertRules", (string)null);
 
                     b.HasData(
                         new
@@ -319,7 +319,7 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.Community", b =>
@@ -370,7 +370,7 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Communities");
+                    b.ToTable("Communities", (string)null);
 
                     b.HasData(
                         new
@@ -419,7 +419,7 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CommunityId");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.Sensor", b =>
@@ -477,7 +477,7 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CommunityId");
 
-                    b.ToTable("Sensors");
+                    b.ToTable("Sensors", (string)null);
 
                     b.HasData(
                         new
@@ -559,7 +559,7 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SensorId");
 
-                    b.ToTable("SensorReadings");
+                    b.ToTable("SensorReadings", (string)null);
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.User", b =>
@@ -594,7 +594,7 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.Alert", b =>
