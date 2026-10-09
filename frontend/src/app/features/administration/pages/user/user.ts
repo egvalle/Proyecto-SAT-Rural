@@ -1,8 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { Router } from '@angular/router';
-import { ComponentCardComponent } from '../../../..//../app/shared/components/component-card/component-card.component';
+import { ComponentCardComponent } from '../../../../shared/components/component-card/component-card.component';
+import { AdminUser } from '../../../../core/models/user';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
@@ -12,37 +11,44 @@ import { AuthService } from '../../../../core/services/auth.service';
   styleUrl: './user.scss',
 })
 export class User {
-  private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
 
-  username = '';
-  password = '';
-  showPassword = false;
-  rememberSession = true;
+  searchText = '';
+  selectedRoleId = '';
+  users: AdminUser[] = [];
+  filteredUsers: AdminUser[] = [];
   isLoading = false;
+  hasSearched = false;
   errorMessage = '';
 
-  togglePassword(): void {
-    this.showPassword = !this.showPassword;
+  searchUsers(): void {
+    this.isLoading = true;
+    this.hasSearched = true;
+    this.errorMessage = '';
+
+    const roleId =
+      this.selectedRoleId === '' ? undefined : Number(this.selectedRoleId);
+
+    this.authService.getAdminUsers(roleId).subscribe({
+      next: users => {
+        this.users = users;
+        this.applyTextFilter();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.users = [];
+        this.filteredUsers = [];
+        this.errorMessage = 'No se pudo consultar la lista de usuarios.';
+        this.isLoading = false;
+      }
+    });
   }
 
-  // onSignIn(): void {
-  //   this.isLoading = true;
-  //   this.errorMessage = '';
-
-  //   this.authService.user({ username: this.username, password: this.password }, this.rememberSession)
-  //     .subscribe({
-  //       next: () => {
-  //         this.isLoading = false;
-  //         this.router.navigate(['/dashboard']);
-  //       },
-  //       error: error => {
-  //         this.isLoading = false;
-  //         this.errorMessage = error.error?.message ?? (error.status === 401
-  //           ? 'El username o password no son correctos.'
-  //           : 'No fue posible iniciar sesión. Intenta nuevamente.');
-  //       }
-  //     });
-  // }
-
+  applyTextFilter(): void {
+    const query = this.searchText.trim().toLocaleLowerCase();
+    this.filteredUsers = this.users.filter(user =>
+      user.fullName.toLocaleLowerCase().includes(query) ||
+      user.username.toLocaleLowerCase().includes(query)
+    );
+  }
 }

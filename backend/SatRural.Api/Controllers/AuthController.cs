@@ -80,17 +80,27 @@ public class AuthController : ControllerBase
     [Authorize]
     [HttpGet("admin/users")]
     public async Task<ActionResult<IReadOnlyList<AdminUserResponse>>> GetAdminUsers(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] int? roleId = null)
     {
         if (!await IsCurrentUserAdminAsync())
         {
             return Forbid();
         }
 
+        if (roleId.HasValue &&
+            !await _dbContext.Roles.AnyAsync(
+                role => role.Id == roleId.Value,
+                cancellationToken))
+        {
+            return BadRequest(new { message = "The specified roleId does not exist." });
+        }
+
         var users = await (
             from user in _dbContext.Users.AsNoTracking()
             join role in _dbContext.Roles.AsNoTracking()
                 on user.RolId equals role.Id
+            where !roleId.HasValue || user.RolId == roleId.Value
             orderby user.Id
             select new AdminUserResponse(
                 user.Id,

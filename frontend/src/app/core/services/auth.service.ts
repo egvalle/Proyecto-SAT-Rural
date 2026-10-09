@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap, throwError } from 'rxjs';
 
+import { AdminUser } from '../models/user';
 import { environment } from '../../../environments/environment';
 
 export interface LoginRequest {
@@ -69,6 +70,18 @@ export class AuthService {
     return this.http.post(
       `${environment.apiBaseUrl}/api/auth/register`,
       request
+    );
+  }
+
+  getAdminUsers(roleId?: number): Observable<AdminUser[]> {
+    let params = new HttpParams();
+    if (roleId !== undefined) {
+      params = params.set('roleId', roleId);
+    }
+
+    return this.http.get<AdminUser[]>(
+      `${environment.apiBaseUrl}/api/auth/admin/users`,
+      { params }
     );
   }
 
