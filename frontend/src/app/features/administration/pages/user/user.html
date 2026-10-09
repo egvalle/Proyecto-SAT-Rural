@@ -100,6 +100,7 @@
           <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
               <tr>
+                <!-- <th scope="col">Id</th> -->
                 <th scope="col">Nombre</th>
                 <th scope="col">Usuario</th>
                 <th scope="col">Rol</th>
@@ -125,7 +126,7 @@
                   <tr>
                     <td>{{ user.fullName }}</td>
                     <td>{{ user.username }}</td>
-                    <td>{{ user.roleId }}</td>
+                    <td>{{ user.roleDescription }}</td>
                     <td>
                       <span class="badge"
                         [class.text-bg-success]="user.isActive"

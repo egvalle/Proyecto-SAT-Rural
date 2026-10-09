@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, map, tap, throwError } from 'rxjs';
 
 import { AdminUser } from '../models/user';
 import { environment } from '../../../environments/environment';
@@ -88,7 +88,7 @@ export class AuthService {
     return this.http.get<AdminUser[]>(
       `${environment.apiBaseUrl}/api/auth/admin/users`,
       { params }
-    );
+    ).pipe(map(users => users.map(user => this.withRoleName(user))));
   }
 
   updateAdminUser(
@@ -98,14 +98,14 @@ export class AuthService {
     return this.http.put<AdminUser>(
       `${environment.apiBaseUrl}/api/auth/admin/users/${id}`,
       request
-    );
+    ).pipe(map(user => this.withRoleName(user)));
   }
 
   changeAdminUserStatus(id: number, isActive: boolean): Observable<AdminUser> {
     return this.http.patch<AdminUser>(
       `${environment.apiBaseUrl}/api/auth/admin/users/${id}/status`,
       { isActive }
-    );
+    ).pipe(map(user => this.withRoleName(user)));
   }
 
   logout(): void {
@@ -159,5 +159,18 @@ export class AuthService {
 
   private hasToken(): boolean {
     return Boolean(localStorage.getItem(this.tokenKey) ?? sessionStorage.getItem(this.tokenKey));
+  }
+
+  private withRoleName(user: AdminUser): AdminUser {
+    const roleName: Record<number, string> = {
+      1: 'ADMIN',
+      2: 'USER',
+      3: 'CONSULTA'
+    };
+
+    return {
+      ...user,
+      roleDescription: roleName[user.roleId] ?? user.roleDescription
+    };
   }
 }
