@@ -17,6 +17,12 @@ export interface RegisterRequest {
   roleId: number;
 }
 
+export interface UpdateAdminUserRequest {
+  fullName: string;
+  roleId: number;
+  password?: string;
+}
+
 export interface LoginResponse {
   token?: string;
   accessToken?: string;
@@ -82,6 +88,23 @@ export class AuthService {
     return this.http.get<AdminUser[]>(
       `${environment.apiBaseUrl}/api/auth/admin/users`,
       { params }
+    );
+  }
+
+  updateAdminUser(
+    id: number,
+    request: UpdateAdminUserRequest
+  ): Observable<AdminUser> {
+    return this.http.put<AdminUser>(
+      `${environment.apiBaseUrl}/api/auth/admin/users/${id}`,
+      request
+    );
+  }
+
+  changeAdminUserStatus(id: number, isActive: boolean): Observable<AdminUser> {
+    return this.http.patch<AdminUser>(
+      `${environment.apiBaseUrl}/api/auth/admin/users/${id}/status`,
+      { isActive }
     );
   }
 
