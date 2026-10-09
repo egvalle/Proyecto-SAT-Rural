@@ -17,28 +17,15 @@
 
           <div class="col-md-6">
             <label for="sensorType" class="form-label">Role</label>
-            <select id="sensorType" name="sensorType" class="form-select"
-        >
-               <option value="">Todos los roles</option>
-              <option value="1">Administrador</option>
-              <option value="2">Usuario</option>
-            </select>
-          
+            <div class="input-group">
+              <select id="sensorType" name="sensorType" class="form-select">
+                <option value="">Todos los roles</option>
+                <option value="1">Administrador</option>
+                <option value="2">Usuario</option>
+              </select>
+              <button type="button" class="btn btn-primary">Grabar</button>
+            </div>
           </div>
-
-        <!-- @if (authService.getRoleId() == 1 || authService.getRoleId() == 2) {
-          <div class="col-12 d-flex justify-content-end">
-            <button type="button" class="btn btn-primary" (click)="saveSensor()" [disabled]="isSaving">
-              {{ isSaving ? 'Guardando...' : 'Grabar sensor' }}
-            </button>
-          </div>
-        }
-          @if (saveMessage) {
-            <div class="col-12 text-success" role="status">{{ saveMessage }}</div>
-          }
-          @if (saveError) {
-            <div class="col-12 text-danger" role="alert">{{ saveError }}</div>
-          } -->
         </div>
       </div>
     </div>
@@ -64,11 +51,14 @@
           </div>
           <div class="col-md-4">
             <label for="sensorFilterStatus" class="form-label">Rol</label>
-            <select id="sensorFilterStatus" name="sensorFilterStatus" class="form-select" >
-              <option value="">Todos los roles</option>
-              <option value="1">Administrador</option>
-              <option value="2">Usuario</option>
-            </select>
+            <div class="input-group">
+              <select id="sensorFilterStatus" name="sensorFilterStatus" class="form-select">
+                <option value="">Todos los roles</option>
+                <option value="1">Administrador</option>
+                <option value="2">Usuario</option>
+              </select>
+              <button type="button" class="btn btn-outline-primary">Filtrar</button>
+            </div>
           </div>
         </div>
 
@@ -85,27 +75,6 @@
               </tr>
             </thead>
             <tbody>
-              <!-- @for (sensor of sensors; track sensor.code) {
-                <tr>
-                  <td class="fw-semibold">{{ sensor.code }}<br><small class="fw-normal">{{ sensor.name }}</small></td>
-                  <td>{{ getSensorTypeLabel(sensor.type) }}</td>
-                  <td>{{ sensor.location || 'Sin ubicación' }}</td>
-                  <td>{{ sensor.latestReading ?? 'Sin lectura' }} {{ sensor.latestReading !== undefined ? sensor.unit : '' }}</td>
-                  <td>
-                    <span class="badge" [class.text-bg-success]="sensor.isActive" [class.text-bg-secondary]="!sensor.isActive">
-                      {{ sensor.isActive ? 'Activo' : 'Inactivo' }}
-                    </span>
-                  </td>
-                  <td class="text-end"><button type="button" class="btn btn-sm btn-outline-primary">Ver</button></td>
-                </tr>
-              } -->
-              <!-- @if (isLoadingSensors) {
-                <tr><td colspan="6" class="text-center text-body-secondary">Consultando sensores...</td></tr>
-              } @else if (sensorListError) {
-                <tr><td colspan="6" class="text-center text-danger">{{ sensorListError }}</td></tr>
-              } @else if (sensors.length === 0) {
-                <tr><td colspan="6" class="text-center text-body-secondary">No se encontraron sensores.</td></tr>
-              } -->
             </tbody>
           </table>
         </div>
