@@ -1,0 +1,491 @@
+<app-component-card
+  title="Reglas de alertas"
+  desc="Configura los umbrales que determinan cuándo se generan alertas de riesgo."
+  className="mb-4">
+
+  <!-- ===================================================== -->
+  <!-- ENCABEZADO -->
+  <!-- ===================================================== -->
+
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+
+    <div>
+      <h2 class="h5 mb-1">
+        Administración de reglas
+      </h2>
+
+      <p class="text-body-secondary mb-0">
+        Define los valores y niveles de riesgo utilizados por el sistema.
+      </p>
+    </div>
+
+    @if (isAdmin) {
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="openCreateModal()">
+
+        <i class="bi bi-plus-lg me-2"></i>
+        Nueva regla
+
+      </button>
+    }
+
+  </div>
+
+
+  <!-- ===================================================== -->
+  <!-- ERROR -->
+  <!-- ===================================================== -->
+
+  @if (listError) {
+
+    <div class="alert alert-danger">
+      {{ listError }}
+    </div>
+
+  }
+
+
+  <!-- ===================================================== -->
+  <!-- TABLA -->
+  <!-- ===================================================== -->
+
+  <div class="table-responsive">
+
+    <table class="table table-hover align-middle">
+
+      <thead class="table-light">
+
+        <tr>
+
+          <th>
+            Sensor
+          </th>
+
+          <th>
+            Condición
+          </th>
+
+          <th>
+            Riesgo
+          </th>
+
+          <th>
+            Fenómeno
+          </th>
+
+          <th>
+            Descripción
+          </th>
+
+          @if (isAdmin) {
+            <th class="text-end">
+              Acciones
+            </th>
+          }
+
+        </tr>
+
+      </thead>
+
+
+      <tbody>
+
+        @for (rule of rules; track rule.id) {
+
+          <tr>
+
+            <td>
+
+              <div class="fw-semibold">
+                {{ getSensorTypeLabel(rule.sensorType) }}
+              </div>
+
+              <small class="text-body-secondary">
+                {{ rule.sensorType }}
+              </small>
+
+            </td>
+
+
+            <td>
+
+              <span class="fw-semibold">
+                {{ rule.operator }}
+                {{ rule.thresholdValue }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="badge"
+                [class.text-bg-warning]="rule.riskLevel === 'YELLOW'"
+                [class.text-bg-danger]="rule.riskLevel === 'RED'"
+                [class.risk-orange]="rule.riskLevel === 'ORANGE'">
+
+                {{ getRiskLevelLabel(rule.riskLevel) }}
+
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span class="fw-semibold">
+                {{ rule.phenomenon }}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span class="text-body-secondary">
+                {{ rule.description }}
+              </span>
+
+            </td>
+
+
+            @if (isAdmin) {
+
+              <td class="text-end">
+
+                <div class="d-flex flex-wrap justify-content-end gap-2">
+
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="openEditModal(rule)"
+                    [disabled]="isDeleting">
+
+                    <i class="bi bi-pencil me-1"></i>
+                    Editar
+
+                  </button>
+
+
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="deleteRule(rule)"
+                    [disabled]="isDeleting">
+
+                    <i class="bi bi-trash me-1"></i>
+                    Eliminar
+
+                  </button>
+
+                </div>
+
+              </td>
+
+            }
+
+          </tr>
+
+        }
+
+
+        @if (isLoading) {
+
+          <tr>
+
+            <td
+              [attr.colspan]="isAdmin ? 6 : 5"
+              class="text-center text-body-secondary py-5">
+
+              Consultando reglas de alertas...
+
+            </td>
+
+          </tr>
+
+        }
+        @else if (rules.length === 0) {
+
+          <tr>
+
+            <td
+              [attr.colspan]="isAdmin ? 6 : 5"
+              class="text-center text-body-secondary py-5">
+
+              No existen reglas de alertas registradas.
+
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</app-component-card>
+
+
+<!-- ========================================================= -->
+<!-- MODAL CREAR / EDITAR -->
+<!-- ========================================================= -->
+
+<app-modal
+  [isOpen]="isModalOpen"
+  (close)="closeModal()"
+  className="max-w-3xl mx-4">
+
+  <div class="p-4 p-md-5">
+
+    <!-- ENCABEZADO -->
+
+    <div class="mb-4">
+
+      <h3 class="h4 mb-1">
+
+        {{
+          editingRuleId === null
+            ? 'Nueva regla de alerta'
+            : 'Editar regla de alerta'
+        }}
+
+      </h3>
+
+      <p class="text-body-secondary mb-0">
+
+        {{
+          editingRuleId === null
+            ? 'Configura un nuevo criterio para generar alertas.'
+            : 'Modifica los parámetros de la regla seleccionada.'
+        }}
+
+      </p>
+
+    </div>
+
+
+    <!-- FORMULARIO -->
+
+    <div class="row g-3">
+
+      <!-- SENSOR -->
+
+      <div class="col-md-6">
+
+        <label class="form-label">
+          Tipo de sensor *
+        </label>
+
+        <select
+          class="form-select"
+          [(ngModel)]="sensorType"
+          name="sensorType">
+
+          <option value="">
+            Selecciona un tipo
+          </option>
+
+          @for (type of sensorTypes; track type.value) {
+
+            <option [value]="type.value">
+              {{ type.label }}
+            </option>
+
+          }
+
+        </select>
+
+      </div>
+
+
+      <!-- OPERADOR -->
+
+      <div class="col-md-3">
+
+        <label class="form-label">
+          Operador *
+        </label>
+
+        <select
+          class="form-select"
+          [(ngModel)]="operator"
+          name="operator">
+
+          @for (item of operators; track item.value) {
+
+            <option [value]="item.value">
+              {{ item.value }}
+            </option>
+
+          }
+
+        </select>
+
+      </div>
+
+
+      <!-- UMBRAL -->
+
+      <div class="col-md-3">
+
+        <label class="form-label">
+          Umbral *
+        </label>
+
+        <input
+          type="number"
+          class="form-control"
+          [(ngModel)]="thresholdValue"
+          name="thresholdValue"
+          step="0.01">
+
+      </div>
+
+
+      <!-- NIVEL -->
+
+      <div class="col-md-6">
+
+        <label class="form-label">
+          Nivel de riesgo *
+        </label>
+
+        <select
+          class="form-select"
+          [(ngModel)]="riskLevel"
+          name="riskLevel">
+
+          <option value="">
+            Selecciona un nivel
+          </option>
+
+          @for (level of riskLevels; track level.value) {
+
+            <option [value]="level.value">
+              {{ level.label }}
+            </option>
+
+          }
+
+        </select>
+
+      </div>
+
+
+      <!-- FENÓMENO -->
+
+      <div class="col-md-6">
+
+        <label class="form-label">
+          Fenómeno *
+        </label>
+
+        <input
+          type="text"
+          class="form-control"
+          [(ngModel)]="phenomenon"
+          name="phenomenon"
+          maxlength="100"
+          placeholder="Ej. Helada">
+
+      </div>
+
+
+      <!-- DESCRIPCIÓN -->
+
+      <div class="col-12">
+
+        <label class="form-label">
+          Descripción *
+        </label>
+
+        <textarea
+          class="form-control"
+          rows="3"
+          [(ngModel)]="description"
+          name="description"
+          maxlength="500"
+          placeholder="Describe cuándo se genera esta alerta.">
+        </textarea>
+
+      </div>
+
+
+      <!-- ERROR -->
+
+      @if (saveError) {
+
+        <div class="col-12">
+
+          <div class="alert alert-danger mb-0">
+            {{ saveError }}
+          </div>
+
+        </div>
+
+      }
+
+
+      <!-- MENSAJE -->
+
+      @if (saveMessage) {
+
+        <div class="col-12">
+
+          <div class="alert alert-success mb-0">
+            {{ saveMessage }}
+          </div>
+
+        </div>
+
+      }
+
+
+      <!-- BOTONES -->
+
+      <div class="col-12">
+
+        <div class="d-flex justify-content-end gap-2 mt-2">
+
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            (click)="closeModal()"
+            [disabled]="isSaving">
+
+            Cancelar
+
+          </button>
+
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="saveRule()"
+            [disabled]="isSaving">
+
+            {{
+              isSaving
+                ? 'Guardando...'
+                : editingRuleId === null
+                  ? 'Crear regla'
+                  : 'Guardar cambios'
+            }}
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</app-modal>

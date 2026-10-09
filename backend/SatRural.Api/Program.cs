@@ -10,6 +10,10 @@ using SatRural.Application.Modules.Monitoring.Services;
 using SatRural.Api.Hubs;
 using SatRural.Api.Realtime;
 using SatRural.Application.Modules.Monitoring.Interfaces;
+using SatRural.Infrastructure.Persistence.Repositories;
+using SatRural.Application.Modules.Audit.Interfaces;
+using SatRural.Application.Modules.Audit.Services;
+using SatRural.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,6 +68,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Health Checks
 builder.Services.AddHealthChecks();
 builder.Services.AddScoped<RiskEvaluationService>();
+builder.Services.AddScoped<IAlertRuleRepository, AlertRuleRepository>();
+builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 builder.Services.AddSignalR();
 
@@ -82,8 +89,15 @@ var app = builder.Build();
 // Aplicar migraciones pendientes automáticamente
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var services = scope.ServiceProvider;
+
+    var dbContext = services.GetRequiredService<AppDbContext>();
+
     dbContext.Database.Migrate();
+
+    await DbSeeder.SeedAsync(
+        services,
+        app.Configuration);
 }
 
 // OpenAPI solo en desarrollo

@@ -29,6 +29,14 @@ public class SensorConfiguration : IEntityTypeConfiguration<Sensor>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(x => x.Location)
+            .HasMaxLength(200);
+
+        builder.Property(x => x.InstallationDate);
+
+        builder.Property(x => x.Description)
+            .HasMaxLength(500);
+
         builder.HasOne(x => x.Community)
             .WithMany(x => x.Sensors)
             .HasForeignKey(x => x.CommunityId)
@@ -46,6 +54,9 @@ public class SensorConfiguration : IEntityTypeConfiguration<Sensor>
                 Name = "Temperatura Ambiente",
                 Type = "TEMPERATURE",
                 Unit = "°C",
+                Location = null,
+                InstallationDate = null,
+                Description = null,
                 IsActive = true,
                 CreatedAt = createdAt
             },
@@ -58,6 +69,9 @@ public class SensorConfiguration : IEntityTypeConfiguration<Sensor>
                 Name = "Humedad Relativa",
                 Type = "HUMIDITY",
                 Unit = "%",
+                Location = null,
+                InstallationDate = null,
+                Description = null,
                 IsActive = true,
                 CreatedAt = createdAt
             },
@@ -70,6 +84,9 @@ public class SensorConfiguration : IEntityTypeConfiguration<Sensor>
                 Name = "Velocidad del Viento",
                 Type = "WIND_SPEED",
                 Unit = "km/h",
+                Location = null,
+                InstallationDate = null,
+                Description = null,
                 IsActive = true,
                 CreatedAt = createdAt
             },
@@ -82,6 +99,9 @@ public class SensorConfiguration : IEntityTypeConfiguration<Sensor>
                 Name = "Nivel de Lluvia",
                 Type = "RAINFALL",
                 Unit = "mm/h",
+                Location = null,
+                InstallationDate = null,
+                Description = null,
                 IsActive = true,
                 CreatedAt = createdAt
             },
@@ -94,6 +114,9 @@ public class SensorConfiguration : IEntityTypeConfiguration<Sensor>
                 Name = "Nivel del Río",
                 Type = "RIVER_LEVEL",
                 Unit = "%",
+                Location = null,
+                InstallationDate = null,
+                Description = null,
                 IsActive = true,
                 CreatedAt = createdAt
             }

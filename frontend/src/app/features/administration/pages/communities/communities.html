@@ -1,0 +1,567 @@
+<app-component-card
+  title="Gestión de comunidades"
+  desc="Administra las comunidades donde se encuentran instalados los sensores.">
+
+  <div class="container-fluid px-0">
+
+    <!-- RESUMEN -->
+    <div class="row g-3 mb-4">
+
+      <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-primary-subtle">
+          <div class="card-body">
+            <p class="text-body-secondary mb-2">
+              Comunidades encontradas
+            </p>
+
+            <h2 class="mb-0">
+              {{ totalItems }}
+            </h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-success-subtle">
+          <div class="card-body">
+            <p class="text-body-secondary mb-2">
+              Mostradas en esta página
+            </p>
+
+            <h2 class="text-success mb-0">
+              {{ communities.length }}
+            </h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-info-subtle">
+          <div class="card-body">
+            <p class="text-body-secondary mb-2">
+              Sensores asociados
+            </p>
+
+            <h2 class="mb-0">
+              {{ totalSensorsOnPage }}
+            </h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-xl-3">
+        <div class="card h-100 border-secondary-subtle">
+          <div class="card-body">
+            <p class="text-body-secondary mb-2">
+              Página
+            </p>
+
+            <h2 class="mb-0">
+              {{ currentPage }} / {{ totalPages || 1 }}
+            </h2>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- REGISTRO / EDICIÓN -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+
+        <div class="mb-4">
+          <h2 class="h5 mb-1">
+            {{
+              editingCommunityId === null
+                ? 'Registrar comunidad'
+                : 'Editar comunidad'
+            }}
+          </h2>
+
+          <p class="text-body-secondary mb-0">
+            Registra la ubicación e información general de la comunidad.
+          </p>
+        </div>
+
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label class="form-label">
+              Nombre *
+            </label>
+
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="communityName"
+              name="communityName"
+              maxlength="150"
+              placeholder="Ej. Comunidad El Pinar">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">
+              Municipio *
+            </label>
+
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="communityMunicipality"
+              name="communityMunicipality"
+              maxlength="100"
+              placeholder="Ej. Villa Canales">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">
+              Departamento *
+            </label>
+
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="communityDepartment"
+              name="communityDepartment"
+              maxlength="100"
+              placeholder="Ej. Guatemala">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">
+              País *
+            </label>
+
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="communityCountry"
+              name="communityCountry"
+              maxlength="100"
+              placeholder="Guatemala">
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">
+              Latitud
+            </label>
+
+            <input
+              type="number"
+              class="form-control"
+              [(ngModel)]="communityLatitude"
+              name="communityLatitude"
+              min="-90"
+              max="90"
+              step="0.000001"
+              placeholder="Ej. 14.634915">
+
+            <small class="text-body-secondary">
+              Valores permitidos: -90 a 90.
+            </small>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">
+              Longitud
+            </label>
+
+            <input
+              type="number"
+              class="form-control"
+              [(ngModel)]="communityLongitude"
+              name="communityLongitude"
+              min="-180"
+              max="180"
+              step="0.000001"
+              placeholder="Ej. -90.506882">
+
+            <small class="text-body-secondary">
+              Valores permitidos: -180 a 180.
+            </small>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">
+              Estado
+            </label>
+
+            <select
+              class="form-select"
+              [(ngModel)]="communityIsActive"
+              name="communityIsActive"
+              [disabled]="editingCommunityId !== null">
+
+              <option [ngValue]="true">
+                Activa
+              </option>
+
+              <option [ngValue]="false">
+                Inactiva
+              </option>
+            </select>
+
+            @if (editingCommunityId !== null) {
+              <small class="text-body-secondary">
+                Utiliza Activar/Desactivar en el listado para cambiar el estado.
+              </small>
+            }
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">
+              Descripción
+            </label>
+
+            <textarea
+              class="form-control"
+              rows="3"
+              [(ngModel)]="communityDescription"
+              name="communityDescription"
+              maxlength="500"
+              placeholder="Descripción o información adicional de la comunidad">
+            </textarea>
+          </div>
+
+          @if (saveMessage) {
+            <div class="col-12">
+              <div class="alert alert-success mb-0">
+                {{ saveMessage }}
+              </div>
+            </div>
+          }
+
+          @if (saveError) {
+            <div class="col-12">
+              <div class="alert alert-danger mb-0">
+                {{ saveError }}
+              </div>
+            </div>
+          }
+
+          <div class="col-12">
+            <div class="d-flex justify-content-end gap-2">
+
+              @if (editingCommunityId !== null) {
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  (click)="cancelEdit()"
+                  [disabled]="isSaving">
+                  Cancelar
+                </button>
+              }
+
+              <button
+                type="button"
+                class="btn btn-primary"
+                (click)="saveCommunity()"
+                [disabled]="isSaving">
+
+                {{
+                  isSaving
+                    ? 'Guardando...'
+                    : editingCommunityId === null
+                      ? 'Registrar comunidad'
+                      : 'Guardar cambios'
+                }}
+              </button>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- LISTADO -->
+    <div class="card border-0 shadow-sm">
+
+      <div class="card-body">
+
+        <div class="mb-4">
+          <h2 class="h5 mb-1">
+            Listado de comunidades
+          </h2>
+
+          <p class="text-body-secondary mb-0">
+            Busca, filtra y administra las comunidades registradas.
+          </p>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="row g-3 mb-4">
+
+          <div class="col-xl-3 col-md-6">
+            <label class="form-label">
+              Buscar
+            </label>
+
+            <input
+              type="search"
+              class="form-control"
+              [(ngModel)]="filterSearch"
+              name="filterSearch"
+              placeholder="Nombre, municipio o departamento"
+              (keyup.enter)="filterCommunities()">
+          </div>
+
+          <div class="col-xl-3 col-md-6">
+            <label class="form-label">
+              Municipio
+            </label>
+
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="filterMunicipality"
+              name="filterMunicipality"
+              placeholder="Ej. Villa Canales"
+              (keyup.enter)="filterCommunities()">
+          </div>
+
+          <div class="col-xl-3 col-md-6">
+            <label class="form-label">
+              Departamento
+            </label>
+
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="filterDepartment"
+              name="filterDepartment"
+              placeholder="Ej. Guatemala"
+              (keyup.enter)="filterCommunities()">
+          </div>
+
+          <div class="col-xl-2 col-md-6">
+            <label class="form-label">
+              Estado
+            </label>
+
+            <select
+              class="form-select"
+              [(ngModel)]="filterStatus"
+              name="filterStatus">
+
+              <option value="">
+                Todos
+              </option>
+
+              <option value="true">
+                Activa
+              </option>
+
+              <option value="false">
+                Inactiva
+              </option>
+            </select>
+          </div>
+
+          <div class="col-xl-1 col-md-6 d-flex align-items-end">
+            <button
+              type="button"
+              class="btn btn-outline-primary w-100"
+              (click)="filterCommunities()"
+              [disabled]="isLoading">
+              Filtrar
+            </button>
+          </div>
+
+          <div class="col-12">
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              (click)="clearFilters()">
+              Limpiar filtros
+            </button>
+          </div>
+
+        </div>
+
+        @if (listError) {
+          <div class="alert alert-danger">
+            {{ listError }}
+          </div>
+        }
+
+        <!-- TABLA -->
+        <div class="table-responsive">
+
+          <table class="table table-hover align-middle">
+
+            <thead class="table-light">
+              <tr>
+                <th>Comunidad</th>
+                <th>Municipio</th>
+                <th>Departamento</th>
+                <th>País</th>
+                <th>Coordenadas</th>
+                <th class="text-center">Sensores</th>
+                <th>Estado</th>
+                <th class="text-end">Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              @for (community of communities; track community.id) {
+
+                <tr>
+
+                  <td>
+                    <div class="fw-semibold">
+                      {{ community.name }}
+                    </div>
+
+                    @if (community.description) {
+                      <small class="text-body-secondary">
+                        {{ community.description }}
+                      </small>
+                    }
+                  </td>
+
+                  <td>
+                    {{ community.municipality }}
+                  </td>
+
+                  <td>
+                    {{ community.department }}
+                  </td>
+
+                  <td>
+                    {{ community.country }}
+                  </td>
+
+                  <td>
+                    @if (
+                      community.latitude !== null &&
+                      community.longitude !== null
+                    ) {
+                      <small>
+                        {{ community.latitude }},
+                        {{ community.longitude }}
+                      </small>
+                    } @else {
+                      <span class="text-body-secondary">
+                        Sin coordenadas
+                      </span>
+                    }
+                  </td>
+
+                  <td class="text-center">
+                    <span class="badge text-bg-info">
+                      {{ community.sensorCount }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span
+                      class="badge"
+                      [class.text-bg-success]="community.isActive"
+                      [class.text-bg-secondary]="!community.isActive">
+
+                      {{
+                        community.isActive
+                          ? 'Activa'
+                          : 'Inactiva'
+                      }}
+                    </span>
+                  </td>
+
+                  <td class="text-end">
+
+                    <div class="d-flex justify-content-end gap-2">
+
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary"
+                        (click)="editCommunity(community)">
+                        Editar
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn btn-sm"
+                        [class.btn-outline-danger]="community.isActive"
+                        [class.btn-outline-success]="!community.isActive"
+                        (click)="toggleStatus(community)">
+
+                        {{
+                          community.isActive
+                            ? 'Desactivar'
+                            : 'Activar'
+                        }}
+                      </button>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+              }
+
+              @if (isLoading) {
+                <tr>
+                  <td
+                    colspan="8"
+                    class="text-center text-body-secondary py-5">
+                    Consultando comunidades...
+                  </td>
+                </tr>
+              } @else if (communities.length === 0) {
+                <tr>
+                  <td
+                    colspan="8"
+                    class="text-center text-body-secondary py-5">
+                    No se encontraron comunidades.
+                  </td>
+                </tr>
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+        <!-- PAGINACIÓN -->
+        @if (totalPages > 1) {
+
+          <div
+            class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
+
+            <small class="text-body-secondary">
+              Página {{ currentPage }} de {{ totalPages }}
+              · {{ totalItems }} registros
+            </small>
+
+            <div class="btn-group">
+
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="previousPage()"
+                [disabled]="currentPage <= 1 || isLoading">
+                Anterior
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="nextPage()"
+                [disabled]="currentPage >= totalPages || isLoading">
+                Siguiente
+              </button>
+
+            </div>
+
+          </div>
+        }
+
+      </div>
+    </div>
+
+  </div>
+
+</app-component-card>

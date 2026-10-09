@@ -1,1 +1,441 @@
-<p>history works!</p>
+<div class="container-fluid py-4">
+
+  <!-- ENCABEZADO -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+
+    <div>
+      <h2 class="mb-1">
+        Historial de eventos
+      </h2>
+
+      <p class="text-body-secondary mb-0">
+        Consulta de eventos climáticos registrados por el sistema.
+      </p>
+    </div>
+
+    <div>
+      <span class="badge bg-secondary">
+        {{ events.length }} eventos
+      </span>
+    </div>
+
+  </div>
+
+
+  <!-- FILTROS -->
+  <div class="card border-0 shadow-sm mb-4">
+
+    <div class="card-body">
+
+      <div class="d-flex align-items-center gap-2 mb-3">
+
+        <i class="bi bi-funnel"></i>
+
+        <h5 class="mb-0">
+          Filtros
+        </h5>
+
+      </div>
+
+
+      <div class="row g-3">
+
+        <!-- COMUNIDAD -->
+        <div class="col-12 col-md-6 col-lg-3">
+
+          <label
+            for="communityId"
+            class="form-label">
+
+            Comunidad
+
+          </label>
+
+          <input
+            id="communityId"
+            type="number"
+            class="form-control"
+            [(ngModel)]="communityId"
+            placeholder="ID de comunidad">
+
+        </div>
+
+
+        <!-- FENÓMENO -->
+        <div class="col-12 col-md-6 col-lg-3">
+
+          <label
+            for="eventType"
+            class="form-label">
+
+            Fenómeno
+
+          </label>
+
+          <select
+            id="eventType"
+            class="form-select"
+            [(ngModel)]="eventType">
+
+            <option value="">
+              Todos
+            </option>
+
+            @for (type of eventTypes; track type) {
+
+              <option [value]="type">
+                {{ type }}
+              </option>
+
+            }
+
+          </select>
+
+        </div>
+
+
+        <!-- NIVEL -->
+        <div class="col-12 col-md-6 col-lg-2">
+
+          <label
+            for="level"
+            class="form-label">
+
+            Nivel
+
+          </label>
+
+          <select
+            id="level"
+            class="form-select"
+            [(ngModel)]="level">
+
+            <option value="">
+              Todos
+            </option>
+
+            <option value="YELLOW">
+              Amarillo
+            </option>
+
+            <option value="ORANGE">
+              Naranja
+            </option>
+
+            <option value="RED">
+              Rojo
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <!-- FECHA DESDE -->
+        <div class="col-12 col-md-6 col-lg-2">
+
+          <label
+            for="dateFrom"
+            class="form-label">
+
+            Desde
+
+          </label>
+
+          <input
+            id="dateFrom"
+            type="date"
+            class="form-control"
+            [(ngModel)]="dateFrom">
+
+        </div>
+
+
+        <!-- FECHA HASTA -->
+        <div class="col-12 col-md-6 col-lg-2">
+
+          <label
+            for="dateTo"
+            class="form-label">
+
+            Hasta
+
+          </label>
+
+          <input
+            id="dateTo"
+            type="date"
+            class="form-control"
+            [(ngModel)]="dateTo">
+
+        </div>
+
+      </div>
+
+
+      <!-- BOTONES -->
+      <div class="d-flex flex-wrap gap-2 mt-4">
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="loadEvents()"
+          [disabled]="loading">
+
+          <i class="bi bi-search me-1"></i>
+
+          Buscar
+
+        </button>
+
+
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="clearFilters()"
+          [disabled]="loading">
+
+          <i class="bi bi-x-circle me-1"></i>
+
+          Limpiar filtros
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ERROR -->
+  @if (error) {
+
+    <div
+      class="alert alert-danger d-flex align-items-center gap-2"
+      role="alert">
+
+      <i class="bi bi-exclamation-triangle"></i>
+
+      <div>
+        No fue posible cargar el historial de eventos.
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- CARGANDO -->
+  @if (loading) {
+
+    <div class="card border-0 shadow-sm">
+
+      <div class="card-body text-center py-5">
+
+        <div
+          class="spinner-border text-primary mb-3"
+          role="status">
+
+          <span class="visually-hidden">
+            Cargando...
+          </span>
+
+        </div>
+
+        <p class="text-body-secondary mb-0">
+          Cargando historial...
+        </p>
+
+      </div>
+
+    </div>
+
+  }
+
+
+  <!-- TABLA -->
+  @if (!loading) {
+
+    <div class="card border-0 shadow-sm">
+
+      <div class="card-body p-0">
+
+        @if (events.length > 0) {
+
+          <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+              <thead class="table-light">
+
+                <tr>
+
+                  <th class="px-3">
+                    Fecha y hora
+                  </th>
+
+                  <th>
+                    Comunidad
+                  </th>
+
+                  <th>
+                    Fenómeno
+                  </th>
+
+                  <th>
+                    Nivel
+                  </th>
+
+                  <th>
+                    Sensor
+                  </th>
+
+                  <th>
+                    Estado
+                  </th>
+
+                  <th>
+                    Descripción
+                  </th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                @for (event of events; track event.id) {
+
+                  <tr>
+
+                    <td class="px-3 text-nowrap">
+
+                      <div class="fw-semibold">
+
+                        {{ event.occurredAt | date:'dd/MM/yyyy' }}
+
+                      </div>
+
+                      <small class="text-body-secondary">
+
+                        {{ event.occurredAt | date:'HH:mm:ss' }}
+
+                      </small>
+
+                    </td>
+
+
+                    <td>
+
+                      <div class="fw-semibold">
+                        {{ event.communityName }}
+                      </div>
+
+                      <small class="text-body-secondary">
+                        ID: {{ event.communityId }}
+                      </small>
+
+                    </td>
+
+
+                    <td>
+
+                      <span class="fw-semibold">
+                        {{ event.eventType }}
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      <span
+                        class="badge"
+                        [class]="getLevelClass(event.level)">
+
+                        {{ getLevelLabel(event.level) }}
+
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      @if (event.sensorId !== null) {
+
+                        <span>
+                          Sensor #{{ event.sensorId }}
+                        </span>
+
+                      } @else {
+
+                        <span class="text-body-secondary">
+                          Sin sensor
+                        </span>
+
+                      }
+
+                    </td>
+
+
+                    <td>
+
+                      <span
+                        class="badge"
+                        [class]="getStatusClass(event.isActive)">
+
+                        {{ getStatusLabel(event.isActive) }}
+
+                      </span>
+
+                    </td>
+
+
+                    <td>
+
+                      <span class="text-body-secondary">
+
+                        {{ event.description }}
+
+                      </span>
+
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        } @else {
+
+          <div class="text-center py-5 px-3">
+
+            <i class="bi bi-clock-history display-5 text-body-secondary"></i>
+
+            <h5 class="mt-3">
+              No hay eventos registrados
+            </h5>
+
+            <p class="text-body-secondary mb-0">
+              No se encontraron eventos con los filtros seleccionados.
+            </p>
+
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

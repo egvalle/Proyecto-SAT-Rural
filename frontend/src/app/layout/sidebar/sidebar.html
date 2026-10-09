@@ -5,7 +5,7 @@
   <div class="brand">
 
     <div class="brand-icon">
-    <i class="bi bi-cloud-fill"></i>
+      <i class="bi bi-cloud-fill"></i>
     </div>
 
     <div>
@@ -14,12 +14,12 @@
     </div>
 
     <button
-        type="button"
-        class="sidebar-close"
-        aria-label="Cerrar menú"
-        (click)="close()">
+      type="button"
+      class="sidebar-close"
+      aria-label="Cerrar menú"
+      (click)="close()">
 
-        <i class="bi bi-x-lg"></i>
+      <i class="bi bi-x-lg"></i>
 
     </button>
 
@@ -27,60 +27,125 @@
 
   <nav>
 
-    <p class="section-title">MONITOREO</p>
+    <p class="section-title">
+      MONITOREO
+    </p>
 
-    <a routerLink="/dashboard" routerLinkActive="active" (click)="close()">
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="active"
+      (click)="close()">
+
       <i class="bi bi-grid-1x2-fill"></i>
       Dashboard
+
     </a>
 
-    <a routerLink="/sensors" routerLinkActive="active" (click)="close()">
-    <i class="bi bi-broadcast-pin"></i>
-    Sensores
+    <a
+      routerLink="/sensors"
+      routerLinkActive="active"
+      (click)="close()">
+
+      <i class="bi bi-broadcast-pin"></i>
+      Sensores
+
     </a>
 
-    <a routerLink="/alerts" routerLinkActive="active" (click)="close()">
-    <i class="bi bi-exclamation-triangle"></i>
-    Alertas
+    <a
+      routerLink="/readings"
+      routerLinkActive="active"
+      (click)="close()">
+
+      <i class="bi bi-activity"></i>
+      Lecturas
+
     </a>
 
-    <!-- @if (authService.getRoleId() == 1) { -->
-      <a  (click)="$event.preventDefault()">
-      <i class="bi bi-clock-history"></i>
-      Historial
-      </a>
+    <a
+      routerLink="/communities"
+      routerLinkActive="active"
+      (click)="close()">
 
-      <a  (click)="$event.preventDefault()">
       <i class="bi bi-geo-alt"></i>
       Comunidades
-      </a>
-      
-      @if (authService.getRoleId() == 1) {
+
+    </a>
+
+    <a
+      routerLink="/alerts"
+      routerLinkActive="active"
+      (click)="close()">
+
+      <i class="bi bi-exclamation-triangle"></i>
+      Alertas
+
+    </a>
+
+    <a
+      routerLink="/history"
+      routerLinkActive="active"
+      (click)="close()">
+
+      <i class="bi bi-clock-history"></i>
+      Historial
+
+    </a>
+
+    @if (authService.getRoleId() == 1) {
+
       <p class="section-title admin-title">
         ADMINISTRACIÓN
       </p>
 
-      <a  (click)="$event.preventDefault()">
-      <i class="bi bi-gear"></i>
-      Configuración
+      <a
+        class="disabled-link"
+        (click)="$event.preventDefault()">
+
+        <i class="bi bi-gear"></i>
+        Configuración
+
       </a>
 
-      <a routerLink="/user" routerLinkActive="active" (click)="close()">
-      <i class="bi bi-people"></i>
-      Usuarios
+      <a
+        routerLink="/alert-rules"
+        routerLinkActive="active"
+        (click)="close()">
+
+        <i class="bi bi-sliders"></i>
+
+        <span>
+          Reglas de alertas
+        </span>
+
       </a>
 
-      <a  (click)="$event.preventDefault()">
-      <i class="bi bi-list-check"></i>
-      Bitácora
+      <a
+        class="disabled-link"
+        (click)="$event.preventDefault()">
+
+        <i class="bi bi-people"></i>
+        Usuarios
+
       </a>
+
+      <a
+        class="disabled-link"
+        (click)="$event.preventDefault()">
+
+        <i class="bi bi-list-check"></i>
+        Bitácora
+
+      </a>
+
     }
 
   </nav>
 
   <div class="sidebar-footer">
 
-    <strong>Comunidad El Pinar</strong>
+    <strong>
+      Comunidad El Pinar
+    </strong>
 
     <span>
       Sistema conectado · 5 sensores activos

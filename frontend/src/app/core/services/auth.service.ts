@@ -9,6 +9,13 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  username: string;
+  password: string;
+  fullName: string;
+  roleId: number;
+}
+
 export interface LoginResponse {
   token?: string;
   accessToken?: string;
@@ -43,17 +50,25 @@ export class AuthService {
           const storage = rememberSession ? localStorage : sessionStorage;
           storage.setItem(this.tokenKey, token);
           const role = response.user?.roleDescription ?? response.user?.role;
-        
-          console.log('Role ID:', response.user?.roleId);
-       
+
+          if (role) {
+            storage.setItem(this.roleKey, role);
+          }
         
           if (response.user?.roleId !== undefined) {
             storage.setItem(this.roleIdKey, String(response.user.roleId));
           }
           this.authenticatedSubject.next(true);
         }
-         console.log('Role ID:', response.user?.roleId);
+        
       })
+    );
+  }
+
+  register(request: RegisterRequest): Observable<unknown> {
+    return this.http.post(
+      `${environment.apiBaseUrl}/api/auth/register`,
+      request
     );
   }
 

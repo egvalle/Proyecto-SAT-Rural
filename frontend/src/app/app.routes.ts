@@ -17,6 +17,14 @@ export const routes: Routes = [
     title: 'Login'
   },
   {
+    path: 'register',
+    loadComponent: () =>
+      import('./features/administration/pages/register/register')
+        .then(m => m.Register),
+    title: 'Crear usuario'
+  },
+
+  {
     path: '',
     component: MainLayout,
     canActivate: [authGuard],
@@ -36,11 +44,34 @@ export const routes: Routes = [
         title: 'Sensores'
       },
       {
+        path: 'communities',
+        loadComponent: () =>
+          import('./features/administration/pages/communities/communities')
+            .then(m => m.Communities),
+        title: 'Comunidades'
+      },
+
+      {
+        path: 'readings',
+        loadComponent: () =>
+          import('./features/administration/pages/readings/readings')
+            .then(m => m.Readings),
+        title: 'Lecturas'
+      },
+
+      {
         path: 'alerts',
         loadComponent: () =>
           import('./features/alerts/pages/alerts/alerts')
             .then(m => m.Alerts),
         title: 'Alertas'
+      },
+      {
+        path: 'alert-rules',
+        loadComponent: () =>
+          import('./features/administration/pages/alert-rules/alert-rules')
+            .then(m => m.AlertRules),
+        title: 'Reglas de alertas'
       },
       {
         path: 'history',

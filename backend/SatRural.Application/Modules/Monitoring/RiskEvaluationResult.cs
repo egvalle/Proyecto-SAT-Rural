@@ -7,4 +7,6 @@ public class RiskEvaluationResult
     public RiskLevel Level { get; set; }
 
     public string Message { get; set; } = string.Empty;
+
+    public string Phenomenon { get; set; } = string.Empty;
 }

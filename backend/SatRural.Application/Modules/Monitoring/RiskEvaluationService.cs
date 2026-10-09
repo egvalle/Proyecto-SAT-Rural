@@ -1,233 +1,98 @@
+using SatRural.Application.Modules.Monitoring.Interfaces;
 using SatRural.Domain.Common;
 
 namespace SatRural.Application.Modules.Monitoring.Services;
 
 public class RiskEvaluationService
 {
-    public RiskEvaluationResult Evaluate(
+    private readonly IAlertRuleRepository _alertRuleRepository;
+
+    public RiskEvaluationService(
+        IAlertRuleRepository alertRuleRepository)
+    {
+        _alertRuleRepository = alertRuleRepository;
+    }
+
+    public async Task<RiskEvaluationResult> EvaluateAsync(
         decimal temperature,
         decimal humidity,
         decimal windSpeed,
         decimal rainfall,
-        decimal riverLevel)
+        decimal riverLevel,
+        CancellationToken cancellationToken = default)
     {
-        var results = new List<RiskEvaluationResult>
+        var rules = await _alertRuleRepository.GetAllAsync(
+            cancellationToken);
+
+        var values = new Dictionary<string, decimal>
         {
-            EvaluateTemperature(temperature),
-            EvaluateHumidity(humidity),
-            EvaluateWind(windSpeed),
-            EvaluateRainfall(rainfall),
-            EvaluateRiverLevel(riverLevel)
+            ["TEMPERATURE"] = temperature,
+            ["HUMIDITY"] = humidity,
+            ["WIND_SPEED"] = windSpeed,
+            ["RAINFALL"] = rainfall,
+            ["RIVER_LEVEL"] = riverLevel
         };
+
+        var results = new List<RiskEvaluationResult>();
+
+        foreach (var rule in rules)
+        {
+            if (!values.TryGetValue(
+                    rule.SensorType,
+                    out var value))
+            {
+                continue;
+            }
+
+            if (!EvaluateCondition(
+                    value,
+                    rule.Operator,
+                    rule.ThresholdValue))
+            {
+                continue;
+            }
+
+            if (!Enum.TryParse<RiskLevel>(
+                    rule.RiskLevel,
+                    true,
+                    out var riskLevel))
+            {
+                continue;
+            }
+
+            results.Add(new RiskEvaluationResult
+            {
+                Level = riskLevel,
+                Phenomenon = rule.Phenomenon,
+                Message = rule.Description
+            });
+        }
+
+        if (results.Count == 0)
+        {
+            return new RiskEvaluationResult
+            {
+                Level = RiskLevel.Green,
+                Phenomenon = string.Empty,
+                Message = "Todos los parámetros se encuentran dentro del rango normal."
+            };
+        }
 
         return results
             .OrderByDescending(result => result.Level)
             .First();
     }
 
-
-    private static RiskEvaluationResult EvaluateTemperature(
-        decimal value)
+    private static bool EvaluateCondition(
+        decimal value,
+        string operatorValue,
+        decimal threshold)
     {
-        if (value >= 38)
+        return operatorValue switch
         {
-            return Result(
-                RiskLevel.Red,
-                "Temperatura extremadamente alta."
-            );
-        }
-
-        if (value >= 35)
-        {
-            return Result(
-                RiskLevel.Orange,
-                "Temperatura elevada."
-            );
-        }
-
-        if (value >= 32)
-        {
-            return Result(
-                RiskLevel.Yellow,
-                "Temperatura por encima del rango normal."
-            );
-        }
-
-        if (value <= 0)
-        {
-            return Result(
-                RiskLevel.Red,
-                "Condiciones críticas de helada."
-            );
-        }
-
-        if (value <= 4)
-        {
-            return Result(
-                RiskLevel.Orange,
-                "Riesgo elevado de helada."
-            );
-        }
-
-        if (value <= 8)
-        {
-            return Result(
-                RiskLevel.Yellow,
-                "Temperatura baja. Condiciones de precaución."
-            );
-        }
-
-        return Result(
-            RiskLevel.Green,
-            "Temperatura dentro del rango normal."
-        );
-    }
-
-
-    private static RiskEvaluationResult EvaluateHumidity(
-        decimal value)
-    {
-        if (value <= 20)
-        {
-            return Result(
-                RiskLevel.Red,
-                "Humedad extremadamente baja."
-            );
-        }
-
-        if (value <= 30)
-        {
-            return Result(
-                RiskLevel.Orange,
-                "Humedad muy baja."
-            );
-        }
-
-        if (value <= 40)
-        {
-            return Result(
-                RiskLevel.Yellow,
-                "Humedad baja."
-            );
-        }
-
-        return Result(
-            RiskLevel.Green,
-            "Humedad dentro del rango normal."
-        );
-    }
-
-
-    private static RiskEvaluationResult EvaluateWind(
-        decimal value)
-    {
-        if (value >= 70)
-        {
-            return Result(
-                RiskLevel.Red,
-                "Vientos extremadamente fuertes."
-            );
-        }
-
-        if (value >= 50)
-        {
-            return Result(
-                RiskLevel.Orange,
-                "Vientos fuertes."
-            );
-        }
-
-        if (value >= 30)
-        {
-            return Result(
-                RiskLevel.Yellow,
-                "Incremento considerable del viento."
-            );
-        }
-
-        return Result(
-            RiskLevel.Green,
-            "Velocidad del viento dentro del rango normal."
-        );
-    }
-
-
-    private static RiskEvaluationResult EvaluateRainfall(
-        decimal value)
-    {
-        if (value >= 50)
-        {
-            return Result(
-                RiskLevel.Red,
-                "Precipitación extrema."
-            );
-        }
-
-        if (value >= 30)
-        {
-            return Result(
-                RiskLevel.Orange,
-                "Lluvia muy intensa."
-            );
-        }
-
-        if (value >= 15)
-        {
-            return Result(
-                RiskLevel.Yellow,
-                "Lluvia intensa en observación."
-            );
-        }
-
-        return Result(
-            RiskLevel.Green,
-            "Nivel de lluvia dentro del rango normal."
-        );
-    }
-
-
-    private static RiskEvaluationResult EvaluateRiverLevel(
-        decimal value)
-    {
-        if (value >= 90)
-        {
-            return Result(
-                RiskLevel.Red,
-                "Nivel del río en condición crítica."
-            );
-        }
-
-        if (value >= 75)
-        {
-            return Result(
-                RiskLevel.Orange,
-                "Nivel del río elevado."
-            );
-        }
-
-        if (value >= 60)
-        {
-            return Result(
-                RiskLevel.Yellow,
-                "Nivel del río en observación."
-            );
-        }
-
-        return Result(
-            RiskLevel.Green,
-            "Nivel del río dentro del rango seguro."
-        );
-    }
-
-
-    private static RiskEvaluationResult Result(
-        RiskLevel level,
-        string message)
-    {
-        return new RiskEvaluationResult
-        {
-            Level = level,
-            Message = message
+            ">=" => value >= threshold,
+            "<=" => value <= threshold,
+            _ => false
         };
     }
 }

@@ -4,46 +4,40 @@ import { Observable } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
 import { Alert } from '../models/alert.model';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
- providedIn: 'root'
+  providedIn: 'root'
 })
 export class AlertsService {
 
- private readonly apiUrl = '/api/alerts';
+  private readonly apiUrl = `${environment.apiBaseUrl}/api/alerts`;
 
- constructor(
-  private http: HttpClient,
-  private authService: AuthService
- ) {
- }
+  constructor(private http: HttpClient) {
+  }
 
- getAlerts(
- level?: string,
- isActive?: boolean
- ): Observable<Alert[]> {
+  getAlerts(
+    level?: string,
+    isActive?: boolean
+  ): Observable<Alert[]> {
 
- const params: Record<string, string> = {};
+    const params: Record<string, string> = {};
 
- if (level) {
- params['level'] = level;
- }
+    if (level) {
+      params['level'] = level;
+    }
 
- if (isActive !== undefined) {
- params['isActive'] = String(isActive);
- }
+    if (isActive !== undefined) {
+      params['isActive'] = String(isActive);
+    }
 
- return this.http.get<Alert[]>(this.apiUrl, { params });
- }
+    return this.http.get<Alert[]>(this.apiUrl, { params });
+  }
 
- resolveAlert(id: number): Observable<{ message: string }> {
- if (!this.authService.canWrite()) {
- return this.authService.rejectWrite();
- }
-
- return this.http.patch<{ message: string }>(
- `${this.apiUrl}/${id}/resolve`,
- {}
- );
- }
+  resolveAlert(id: number): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(
+      `${this.apiUrl}/${id}/resolve`,
+      {}
+    );
+  }
 }
