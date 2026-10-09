@@ -79,6 +79,13 @@ export const routes: Routes = [
           import('./features/alerts/pages/history/history')
             .then(m => m.History),
         title: 'Historial'
+      },
+      {
+        path: 'user',
+        loadComponent: () =>
+          import('./features/administration/pages/user/user')
+            .then(m => m.User),
+        title: 'Usuarios'
       }
     ]
   },
