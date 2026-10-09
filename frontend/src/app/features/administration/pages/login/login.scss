@@ -285,6 +285,15 @@
 	font-size: 0.7rem;
 }
 
+.login-success {
+	color: #198754;
+	background: #eaf7ef;
+	border: 1px solid #b7e4c7;
+	border-radius: 8px;
+	padding: 12px;
+	font-size: 0.9rem;
+}
+
 @media (max-width: 800px) {
 	.login-page {
 		display: block;

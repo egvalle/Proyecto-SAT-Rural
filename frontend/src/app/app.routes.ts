@@ -16,6 +16,13 @@ export const routes: Routes = [
         .then(m => m.Login),
     title: 'Login'
   },
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./features/administration/pages/register/register')
+        .then(m => m.Register),
+    title: 'Crear usuario'
+  },
 
   {
     path: '',
