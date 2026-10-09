@@ -16,7 +16,6 @@ export const routes: Routes = [
         .then(m => m.Login),
     title: 'Login'
   },
-
   {
     path: '',
     component: MainLayout,
@@ -49,6 +48,13 @@ export const routes: Routes = [
           import('./features/alerts/pages/history/history')
             .then(m => m.History),
         title: 'Historial'
+      },
+      {
+        path: 'user',
+        loadComponent: () =>
+          import('./features/administration/pages/user/user')
+            .then(m => m.User),
+        title: 'Usuarios'
       }
     ]
   },

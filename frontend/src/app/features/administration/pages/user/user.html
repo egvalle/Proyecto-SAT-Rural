@@ -1,0 +1,115 @@
+<app-component-card title="Registro de usuarios" desc="Registra y consulta los usuarios del sistema.">
+  <div class="container-fluid px-0">
+    
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+       
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="sensorCode" class="form-label">Nombre</label>
+            <input id="sensorCode" name="sensorCode" type="text" class="form-control">
+          </div>
+
+          <div class="col-md-6">
+            <label for="sensorName" class="form-label">Contraseña</label>
+            <input id="sensorName" name="sensorName" type="text" class="form-control" >
+          </div>
+
+          <div class="col-md-6">
+            <label for="sensorType" class="form-label">Role</label>
+            <select id="sensorType" name="sensorType" class="form-select"
+        >
+               <option value="">Todos los roles</option>
+              <option value="1">Administrador</option>
+              <option value="2">Usuario</option>
+            </select>
+          
+          </div>
+
+        <!-- @if (authService.getRoleId() == 1 || authService.getRoleId() == 2) {
+          <div class="col-12 d-flex justify-content-end">
+            <button type="button" class="btn btn-primary" (click)="saveSensor()" [disabled]="isSaving">
+              {{ isSaving ? 'Guardando...' : 'Grabar sensor' }}
+            </button>
+          </div>
+        }
+          @if (saveMessage) {
+            <div class="col-12 text-success" role="status">{{ saveMessage }}</div>
+          }
+          @if (saveError) {
+            <div class="col-12 text-danger" role="alert">{{ saveError }}</div>
+          } -->
+        </div>
+      </div>
+    </div>
+  
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <div>
+            <h2 class="h5 mb-1">Listado de Usuarios</h2>
+            <p class="text-body-secondary mb-0">Consulta el usuarios</p>
+          </div>
+          <!-- <button type="button" class="btn btn-primary"> -->
+            <!-- <span aria-hidden="true">+</span> -->
+            <!-- Grabar
+          </button> -->
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <label for="sensorSearch" class="form-label">Buscar usuario</label>
+            <input id="sensorSearch" name="sensorSearch" type="search" class="form-control"
+              placeholder="Nombre o identificador">
+          </div>
+          <div class="col-md-4">
+            <label for="sensorFilterStatus" class="form-label">Rol</label>
+            <select id="sensorFilterStatus" name="sensorFilterStatus" class="form-select" >
+              <option value="">Todos los roles</option>
+              <option value="1">Administrador</option>
+              <option value="2">Usuario</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th scope="col">Sensor</th>
+                <th scope="col">Tipo</th>
+                <th scope="col">Ubicación</th>
+                <th scope="col">Última lectura</th>
+                <th scope="col">Estado</th>
+                <th scope="col" class="text-end">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- @for (sensor of sensors; track sensor.code) {
+                <tr>
+                  <td class="fw-semibold">{{ sensor.code }}<br><small class="fw-normal">{{ sensor.name }}</small></td>
+                  <td>{{ getSensorTypeLabel(sensor.type) }}</td>
+                  <td>{{ sensor.location || 'Sin ubicación' }}</td>
+                  <td>{{ sensor.latestReading ?? 'Sin lectura' }} {{ sensor.latestReading !== undefined ? sensor.unit : '' }}</td>
+                  <td>
+                    <span class="badge" [class.text-bg-success]="sensor.isActive" [class.text-bg-secondary]="!sensor.isActive">
+                      {{ sensor.isActive ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td class="text-end"><button type="button" class="btn btn-sm btn-outline-primary">Ver</button></td>
+                </tr>
+              } -->
+              <!-- @if (isLoadingSensors) {
+                <tr><td colspan="6" class="text-center text-body-secondary">Consultando sensores...</td></tr>
+              } @else if (sensorListError) {
+                <tr><td colspan="6" class="text-center text-danger">{{ sensorListError }}</td></tr>
+              } @else if (sensors.length === 0) {
+                <tr><td colspan="6" class="text-center text-body-secondary">No se encontraron sensores.</td></tr>
+              } -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</app-component-card>
