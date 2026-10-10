@@ -22,15 +22,12 @@
       <i class="bi bi-x-lg"></i>
 
     </button>
-
   </div>
-
   <nav>
 
     <p class="section-title">
       MONITOREO
     </p>
-
     <a
       routerLink="/dashboard"
       routerLinkActive="active"
@@ -38,39 +35,28 @@
 
       <i class="bi bi-grid-1x2-fill"></i>
       Dashboard
-
     </a>
-
     <a
       routerLink="/sensors"
       routerLinkActive="active"
       (click)="close()">
-
       <i class="bi bi-broadcast-pin"></i>
       Sensores
-
     </a>
-
     <a
       routerLink="/readings"
       routerLinkActive="active"
       (click)="close()">
-
       <i class="bi bi-activity"></i>
       Lecturas
-
     </a>
-
     <a
       routerLink="/communities"
       routerLinkActive="active"
       (click)="close()">
-
       <i class="bi bi-geo-alt"></i>
       Comunidades
-
     </a>
-
     <a
       routerLink="/alerts"
       routerLinkActive="active"
@@ -78,9 +64,7 @@
 
       <i class="bi bi-exclamation-triangle"></i>
       Alertas
-
     </a>
-
     <a
       routerLink="/history"
       routerLinkActive="active"
@@ -96,16 +80,12 @@
       <p class="section-title admin-title">
         ADMINISTRACIÓN
       </p>
-
-      <a
-        class="disabled-link"
+      <!-- <a    class="disabled-link"
         (click)="$event.preventDefault()">
 
         <i class="bi bi-gear"></i>
         Configuración
-
-      </a>
-
+      </a> -->
       <a
         routerLink="/alert-rules"
         routerLinkActive="active"
@@ -119,19 +99,15 @@
 
       </a>
 
-      <a
-        class="disabled-link"
-        (click)="$event.preventDefault()">
-
+      <a routerLink="/user" routerLinkActive="active" (click)="$event.preventDefault()">
+      
         <i class="bi bi-people"></i>
         Usuarios
-
       </a>
-
       <a
-        class="disabled-link"
-        (click)="$event.preventDefault()">
-
+        routerLink="/binnacle"
+        routerLinkActive="active"
+        (click)="close()">
         <i class="bi bi-list-check"></i>
         Bitácora
 
@@ -150,7 +126,6 @@
     <span>
       Sistema conectado · 5 sensores activos
     </span>
-
   </div>
 
 </aside>

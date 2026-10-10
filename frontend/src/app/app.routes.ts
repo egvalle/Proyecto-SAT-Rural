@@ -86,6 +86,13 @@ export const routes: Routes = [
           import('./features/administration/pages/user/user')
             .then(m => m.User),
         title: 'Usuarios'
+      },
+      {
+        path: 'binnacle',
+        loadComponent: () =>
+          import('./features/administration/pages/binnacle/binnacle')
+            .then(m => m.Binnacle),
+        title: 'Bitacora'
       }
     ]
   },

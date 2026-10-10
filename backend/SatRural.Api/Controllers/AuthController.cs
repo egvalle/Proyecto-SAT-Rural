@@ -80,17 +80,27 @@ public class AuthController : ControllerBase
     [Authorize]
     [HttpGet("admin/users")]
     public async Task<ActionResult<IReadOnlyList<AdminUserResponse>>> GetAdminUsers(
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] int? roleId = null)
     {
         if (!await IsCurrentUserAdminAsync())
         {
             return Forbid();
         }
 
+        if (roleId.HasValue &&
+            !await _dbContext.Roles.AnyAsync(
+                role => role.Id == roleId.Value,
+                cancellationToken))
+        {
+            return BadRequest(new { message = "The specified roleId does not exist." });
+        }
+
         var users = await (
             from user in _dbContext.Users.AsNoTracking()
             join role in _dbContext.Roles.AsNoTracking()
                 on user.RolId equals role.Id
+            where !roleId.HasValue || user.RolId == roleId.Value
             orderby user.Id
             select new AdminUserResponse(
                 user.Id,
@@ -128,6 +138,93 @@ public class AuthController : ControllerBase
             .SingleAsync();
 
         return Ok(ToUserResponse(user, roleDescription));
+    }
+
+    [Authorize]
+    [HttpPut("admin/users/{id:int}")]
+    public async Task<ActionResult<AdminUserResponse>> UpdateAdminUser(
+        int id,
+        UpdateAdminUserRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!await IsCurrentUserAdminAsync())
+        {
+            return Forbid();
+        }
+
+        var user = await _dbContext.Users
+            .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+        if (user is null)
+        {
+            return NotFound(new { message = "User not found." });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            return BadRequest(new { message = "Full name is required." });
+        }
+
+        if (request.Password is not null &&
+            (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 8))
+        {
+            return BadRequest(new
+            {
+                message = "Password must contain at least 8 characters."
+            });
+        }
+
+        var role = await _dbContext.Roles
+            .SingleOrDefaultAsync(candidate => candidate.Id == request.RoleId, cancellationToken);
+        if (role is null)
+        {
+            return BadRequest(new { message = "The specified roleId does not exist." });
+        }
+
+        if (user.Id == GetCurrentUserId() && user.RolId != request.RoleId)
+        {
+            return BadRequest(new { message = "You cannot change your own role." });
+        }
+
+        user.FullName = request.FullName.Trim();
+        user.RolId = role.Id;
+        if (request.Password is not null)
+        {
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.Password);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        return Ok(ToAdminUserResponse(user, role.Descripcion));
+    }
+
+    [Authorize]
+    [HttpPatch("admin/users/{id:int}/status")]
+    public async Task<ActionResult<AdminUserResponse>> ChangeAdminUserStatus(
+        int id,
+        ChangeAdminUserStatusRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!await IsCurrentUserAdminAsync())
+        {
+            return Forbid();
+        }
+
+        if (id == GetCurrentUserId() && !request.IsActive)
+        {
+            return BadRequest(new { message = "You cannot deactivate your own account." });
+        }
+
+        var user = await _dbContext.Users
+            .SingleOrDefaultAsync(candidate => candidate.Id == id, cancellationToken);
+        if (user is null)
+        {
+            return NotFound(new { message = "User not found." });
+        }
+
+        user.IsActive = request.IsActive;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        var roleDescription = await GetRoleDescriptionAsync(user.RolId);
+        return Ok(ToAdminUserResponse(user, roleDescription));
     }
 
     [HttpPost("login")]
@@ -174,13 +271,19 @@ public class AuthController : ControllerBase
 
     private async Task<bool> IsCurrentUserAdminAsync()
     {
-        var subject = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
-            ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return int.TryParse(subject, out var userId) &&
+        var userId = GetCurrentUserId();
+        return userId.HasValue &&
             await _dbContext.Users.AnyAsync(candidate =>
-                candidate.Id == userId &&
+                candidate.Id == userId.Value &&
                 candidate.IsActive &&
                 candidate.RolId == Rol.AdminId);
+    }
+
+    private int? GetCurrentUserId()
+    {
+        var subject = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(subject, out var userId) ? userId : null;
     }
 
     private Task<string> GetRoleDescriptionAsync(int roleId) =>
@@ -221,9 +324,26 @@ public class AuthController : ControllerBase
 
     private static UserResponse ToUserResponse(User user, string roleDescription) =>
         new(user.Id, user.Username, user.FullName, user.RolId, roleDescription);
+
+    private static AdminUserResponse ToAdminUserResponse(User user, string roleDescription) =>
+        new(
+            user.Id,
+            user.Username,
+            user.FullName,
+            user.RolId,
+            roleDescription,
+            user.IsActive,
+            user.CreatedAt);
 }
 
 public sealed record RegisterRequest(string Username, string Password, string FullName, int RoleId);
+
+public sealed record UpdateAdminUserRequest(
+    string FullName,
+    int RoleId,
+    string? Password = null);
+
+public sealed record ChangeAdminUserStatusRequest(bool IsActive);
 
 public sealed record LoginRequest(string Username, string Password);
 

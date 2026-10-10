@@ -36,6 +36,9 @@ public class AppDbContext : DbContext
     public DbSet<Rol> Roles =>
         Set<Rol>();
 
+    public DbSet<Binnacle> Binnacles =>
+        Set<Binnacle>();
+
     public DbSet<AuditLog> AuditLogs =>
         Set<AuditLog>();
 

@@ -1,0 +1,54 @@
+<app-component-card title="Bitacora" desc="Registro de actividades del sistema.">
+    
+    <div class="container-fluid px-0">
+        <!-- ===================================================== -->
+        <!-- LISTADO -->
+        <!-- ===================================================== -->
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+            
+                <!-- Tabla -->
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Id</th>
+                                <th>Descripción</th>
+                                <th>Movimiento</th>
+                                <th>User</th>
+                                <th>Fecha/hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (isLoading) {
+                                <tr>
+                                    <td colspan="5" class="text-center">Cargando bitácora...</td>
+                                </tr>
+                            } @else if (errorMessage) {
+                                <tr>
+                                    <td colspan="5" class="text-center text-danger">{{ errorMessage }}</td>
+                                </tr>
+                            } @else if (entries.length === 0) {
+                                <tr>
+                                    <td colspan="5" class="text-center">No hay registros en la bitácora.</td>
+                                </tr>
+                            } @else {
+                                @for (entry of entries; track entry.id) {
+                                    <tr>
+                                        <td>{{ entry.id }}</td>
+                                        <td>{{ entry.description }}</td>
+                                        <td>{{ entry.idMovimentType }}</td>
+                                        <td>{{ entry.user }}</td>
+                                        <td>{{ entry.dateHour | date: 'short' }}</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</app-component-card>
