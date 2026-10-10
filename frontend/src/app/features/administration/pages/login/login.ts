@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
+import { switchMap } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
 
@@ -29,8 +30,20 @@ export class Login {
   onSignIn(): void {
     this.isLoading = true;
     this.errorMessage = '';
+    let loginSucceeded = false;
 
     this.authService.login({ username: this.username, password: this.password }, this.rememberSession)
+      .pipe(
+        switchMap(() => {
+          loginSucceeded = true;
+          return this.authService.createBinnacle({
+            description: 'Ingreso a panel',
+            idMovimentType: 1,
+            user: this.username,
+            dateHour: new Date().toISOString()
+          });
+        })
+      )
       .subscribe({
         next: () => {
           this.isLoading = false;
@@ -38,9 +51,11 @@ export class Login {
         },
         error: error => {
           this.isLoading = false;
-          this.errorMessage = error.error?.message ?? (error.status === 401
-            ? 'El username o password no son correctos.'
-            : 'No fue posible iniciar sesión. Intenta nuevamente.');
+          this.errorMessage = loginSucceeded
+            ? error.error?.message ?? 'No fue posible guardar el ingreso en la bitácora.'
+            : error.error?.message ?? (error.status === 401
+              ? 'El username o password no son correctos.'
+              : 'No fue posible iniciar sesión. Intenta nuevamente.');
         }
       });
   }

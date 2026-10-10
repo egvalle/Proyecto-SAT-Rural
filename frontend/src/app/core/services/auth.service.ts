@@ -23,6 +23,21 @@ export interface UpdateAdminUserRequest {
   password?: string;
 }
 
+export interface CreateBinnacleRequest {
+  description: string;
+  idMovimentType: number;
+  user: string;
+  dateHour: string;
+}
+
+export interface BinnacleEntry {
+  id: number;
+  description: string;
+  idMovimentType: number;
+  user: string;
+  dateHour: string;
+}
+
 export interface LoginResponse {
   token?: string;
   accessToken?: string;
@@ -39,6 +54,7 @@ export interface LoginResponse {
 })
 export class AuthService {
   private readonly loginUrl = `${environment.apiBaseUrl}/api/auth/login`;
+  private readonly binnacleUrl = `${environment.apiBaseUrl}/api/binnacle`;
   private readonly tokenKey = 'sat-rural-auth-token';
   private readonly roleKey = 'sat-rural-user-role';
   private readonly roleIdKey = 'sat-rural-user-role-id';
@@ -67,9 +83,16 @@ export class AuthService {
           }
           this.authenticatedSubject.next(true);
         }
-        
       })
     );
+  }
+
+  createBinnacle(request: CreateBinnacleRequest): Observable<unknown> {
+    return this.http.post(this.binnacleUrl, request);
+  }
+
+  getBinnacle(): Observable<BinnacleEntry[]> {
+    return this.http.get<BinnacleEntry[]>(this.binnacleUrl);
   }
 
   register(request: RegisterRequest): Observable<unknown> {
