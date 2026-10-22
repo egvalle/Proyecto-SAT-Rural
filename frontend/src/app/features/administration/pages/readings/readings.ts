@@ -41,6 +41,9 @@ export class Readings implements OnInit {
   totalItems = 0;
   totalPages = 0;
 
+  pdfExportError = '';
+  isGeneratingPdf = false;
+
   constructor(
     private readonly sensorReadingService: SensorReadingService,
     private readonly sensorService: SensorService,
@@ -53,6 +56,75 @@ export class Readings implements OnInit {
     this.loadReadings();
   }
 
+  async downloadReadingsPdf(): Promise<void> {
+    this.pdfExportError = '';
+
+    if (this.readings.length === 0) {
+      this.pdfExportError = 'No hay lecturas para incluir en el PDF.';
+      return;
+    }
+
+    this.isGeneratingPdf = true;
+
+    try {
+      const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable')
+      ]);
+      const document = new jsPDF({ orientation: 'landscape' });
+      const generatedAt = new Intl.DateTimeFormat('es-GT', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      }).format(new Date());
+
+      document.setFontSize(16);
+      document.text('Reporte de lecturas', 14, 18);
+      document.setFontSize(10);
+      document.text(
+        `Generado: ${generatedAt} | Página ${this.currentPage} de ${this.totalPages || 1} (${this.totalItems} registros en total)`,
+        14,
+        25
+      );
+
+      autoTable(document, {
+        startY: 32,
+        head: [[
+          'Fecha y hora',
+          'Sensor',
+          'Tipo',
+          'Comunidad',
+          'Valor',
+          'Estado del sensor'
+        ]],
+        body: this.readings.map(reading => [
+          new Intl.DateTimeFormat('es-GT', {
+            dateStyle: 'short',
+            timeStyle: 'medium'
+          }).format(new Date(reading.recordedAt)),
+          `${reading.sensorCode}\n${reading.sensorName}`,
+          this.getSensorTypeLabel(reading.sensorType),
+          reading.communityName,
+          `${reading.value} ${reading.unit}`,
+          reading.sensorIsActive ? 'Activo' : 'Inactivo'
+        ]),
+        styles: {
+          fontSize: 9,
+          cellPadding: 3
+        },
+        headStyles: {
+          fillColor: [13, 110, 253]
+        },
+        margin: { left: 14, right: 14 }
+      });
+
+      document.save(`lecturas-pagina-${this.currentPage}.pdf`);
+    } catch (error) {
+      console.error('No se pudo generar el PDF de lecturas:', error);
+      this.pdfExportError = 'No se pudo generar el archivo PDF. Inténtalo nuevamente.';
+    } finally {
+      this.isGeneratingPdf = false;
+    }
+  }
   loadCommunities(): void {
     this.communityService.getCommunities(
       '',
