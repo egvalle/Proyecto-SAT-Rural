@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+using System.Text;
 using SatRural.Domain.Entities;
 using SatRural.Infrastructure.Persistence;
 
@@ -190,7 +192,6 @@ public class SensorsController : ControllerBase
             new { id = sensor.Id },
             ToResponse(sensor));
     }
-
     // PUT: api/sensors/1
     [HttpPut("{id:int}")]
     public async Task<ActionResult<SensorResponse>> Update(
@@ -307,6 +308,11 @@ public class SensorsController : ControllerBase
             : value.Trim();
     }
 
+    private static string CsvValue(string value)
+    {
+        return $"\"{value.Replace("\"", "\"\"")}\"";
+    }
+
     private static SensorResponse ToResponse(Sensor sensor)
     {
         return new SensorResponse(
@@ -324,6 +330,15 @@ public class SensorsController : ControllerBase
             sensor.CreatedAt);
     }
 }
+
+/// <summary>Sensor fields accepted when exporting a collection to CSV.</summary>
+public sealed record ExportSensorRequest(
+    int CommunityId,
+    string Code,
+    string Name,
+    string Type,
+    string Unit,
+    bool IsActive);
 
 public sealed record CreateSensorRequest(
     int CommunityId,

@@ -285,6 +285,48 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SatRural.Domain.Entities.Attachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Data")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("IdClase")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Urlcomplete")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<string>("Urlrelative")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdClase");
+
+                    b.ToTable("Attachments");
+                });
+
             modelBuilder.Entity("SatRural.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<long>("Id")
@@ -347,6 +389,30 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Binnacles");
+                });
+
+            modelBuilder.Entity("SatRural.Domain.Entities.Clase", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)")
+                        .HasColumnName("Clase");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Clases");
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.Community", b =>
@@ -680,6 +746,16 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                     b.Navigation("Sensor");
                 });
 
+            modelBuilder.Entity("SatRural.Domain.Entities.Attachment", b =>
+                {
+                    b.HasOne("SatRural.Domain.Entities.Clase", "Clase")
+                        .WithMany("Attachments")
+                        .HasForeignKey("IdClase")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Clase");
+                });
+
             modelBuilder.Entity("SatRural.Domain.Entities.AuditLog", b =>
                 {
                     b.HasOne("SatRural.Domain.Entities.User", "User")
@@ -742,6 +818,11 @@ namespace SatRural.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("SatRural.Domain.Entities.Alert", b =>
                 {
                     b.Navigation("Events");
+                });
+
+            modelBuilder.Entity("SatRural.Domain.Entities.Clase", b =>
+                {
+                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.Community", b =>

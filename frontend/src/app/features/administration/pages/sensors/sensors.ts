@@ -39,6 +39,8 @@ export class Sensors implements OnInit {
   saveMessage = '';
   saveError = '';
   sensorListError = '';
+  pdfExportError = '';
+  isGeneratingPdf = false;
 
   editingSensorId: number | null = null;
 
@@ -271,6 +273,77 @@ export class Sensors implements OnInit {
     this.filterStatus = '';
 
     this.loadSensors(1);
+  }
+
+  async downloadSensorsPdf(): Promise<void> {
+    this.pdfExportError = '';
+
+    if (this.sensors.length === 0) {
+      this.pdfExportError = 'No hay sensores para incluir en el PDF.';
+      return;
+    }
+
+    this.isGeneratingPdf = true;
+
+    try {
+      const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable')
+      ]);
+      const document = new jsPDF({ orientation: 'landscape' });
+      const generatedAt = new Intl.DateTimeFormat('es-GT', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+      }).format(new Date());
+
+      document.setFontSize(16);
+      document.text('Reporte de sensores', 14, 18);
+      document.setFontSize(10);
+      document.text(
+        `Generado: ${generatedAt} | Página ${this.currentPage} de ${this.totalPages || 1} (${this.totalItems} registros en total)`,
+        14,
+        25
+      );
+
+      autoTable(document, {
+        startY: 32,
+        head: [[
+          'Código',
+          'Sensor',
+          'Tipo',
+          'Comunidad',
+          'Ubicación',
+          'Unidad',
+          'Estado'
+        ]],
+        body: this.sensors.map(sensor => [
+          sensor.code,
+          sensor.description
+            ? `${sensor.name}\n${sensor.description}`
+            : sensor.name,
+          this.getSensorTypeLabel(sensor.type),
+          sensor.communityName,
+          sensor.location || 'Sin ubicación',
+          sensor.unit,
+          sensor.isActive ? 'Activo' : 'Inactivo'
+        ]),
+        styles: {
+          fontSize: 9,
+          cellPadding: 3
+        },
+        headStyles: {
+          fillColor: [13, 110, 253]
+        },
+        margin: { left: 14, right: 14 }
+      });
+
+      document.save(`sensores-pagina-${this.currentPage}.pdf`);
+    } catch (error) {
+      console.error('No se pudo generar el PDF de sensores:', error);
+      this.pdfExportError = 'No se pudo generar el archivo PDF. Inténtalo nuevamente.';
+    } finally {
+      this.isGeneratingPdf = false;
+    }
   }
 
   // ============================================================
@@ -841,4 +914,5 @@ export class Sensors implements OnInit {
       this.sensorCommunityId = null;
     }
   }
+  
 }
