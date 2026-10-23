@@ -47,6 +47,29 @@ services:
 
     restart: unless-stopped
 
+  gateway:
+    build:
+      context: ./backend
+      dockerfile: SatRural.Gateway/Dockerfile
+
+    container_name: sat-rural-gateway
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ReverseProxy__Clusters__legacy-api__Destinations__destination1__Address: "http://api:8080/"
+      Jwt__Key: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
+      Jwt__Issuer: "SatRural.Api"
+      Jwt__Audience: "SatRural.Client"
+
+    ports:
+      - "8081:8080"
+
+    depends_on:
+      - api
+
+    restart: unless-stopped
+
   frontend:
     build:
       context: ./frontend
