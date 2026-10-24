@@ -16,6 +16,7 @@ builder.Services.AddDbContext<CommunityDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddHealthChecks();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -28,5 +29,6 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapHealthChecks("/health");
+app.MapControllers();
 
 app.Run();
