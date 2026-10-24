@@ -81,6 +81,13 @@ export const routes: Routes = [
         title: 'Historial'
       },
       {
+        path: 'reports',
+        loadComponent: () =>
+          import('./features/reports/pages/reports/reports')
+            .then(m => m.Reports),
+        title: 'Reportes'
+      },
+      {
         path: 'user',
         loadComponent: () =>
           import('./features/administration/pages/user/user')

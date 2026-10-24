@@ -1,0 +1,47 @@
+<section class="p-6">
+  <h1 class="mb-2 text-2xl font-semibold text-gray-900">
+    Reportes
+  </h1>
+
+  <p class="mb-6 text-gray-600">
+    Genera un reporte PDF de alertas con los filtros seleccionados.
+  </p>
+
+  <div class="max-w-xl space-y-5 rounded-xl border border-gray-200 bg-white p-6">
+    <label class="block">
+      <span class="mb-2 block font-medium text-gray-700">Nivel de alerta</span>
+      <select
+        [(ngModel)]="level"
+        name="level"
+        class="w-full rounded-lg border border-gray-300 p-3"
+      >
+        <option value="YELLOW">Amarillo</option>
+        <option value="ORANGE">Naranja</option>
+        <option value="RED">Rojo</option>
+      </select>
+    </label>
+
+    <label class="flex items-center gap-3 text-gray-700">
+      <input
+        type="checkbox"
+        [(ngModel)]="activeOnly"
+        name="activeOnly"
+        class="h-4 w-4"
+      />
+      Incluir solo alertas activas
+    </label>
+
+    <button
+      type="button"
+      (click)="generateReport()"
+      [disabled]="loading"
+      class="rounded-lg bg-emerald-800 px-5 py-3 font-semibold text-white disabled:opacity-60"
+    >
+      {{ loading ? 'Generando…' : 'Generar PDF' }}
+    </button>
+
+    @if (message) {
+      <p class="text-sm text-gray-700" role="status">{{ message }}</p>
+    }
+  </div>
+</section>
