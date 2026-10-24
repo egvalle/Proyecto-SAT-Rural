@@ -25,4 +25,10 @@ public class Alert
     public Sensor? Sensor { get; set; }
 
     public ICollection<Event> Events { get; set; } = new List<Event>();
+
+    public int? AlertRuleId { get; set; }
+
+    public decimal? DetectedValue { get; set; }
+
+    public decimal? ThresholdValue { get; set; }
 }
