@@ -1,6 +1,4 @@
-<app-component-card
-  title="Gestión de sensores"
-  desc="Administra los sensores instalados en las comunidades.">
+<app-component-card title="Gestión de sensores" desc="Administra los sensores instalados en las comunidades.">
 
   <div class="container-fluid px-0">
 
@@ -79,9 +77,9 @@
         <div class="mb-4">
           <h2 class="h5 mb-1">
             {{
-              editingSensorId === null
-                ? 'Registrar sensor'
-                : 'Editar sensor'
+            editingSensorId === null
+            ? 'Registrar sensor'
+            : 'Editar sensor'
             }}
           </h2>
 
@@ -103,28 +101,22 @@
 
             <div class="d-flex gap-2">
 
-              <select
-                class="form-select"
-                [(ngModel)]="sensorCommunityId"
-                name="sensorCommunityId">
+              <select class="form-select" [(ngModel)]="sensorCommunityId" name="sensorCommunityId">
 
                 <option [ngValue]="null">
                   Selecciona una comunidad
                 </option>
 
                 @for (community of communities; track community.id) {
-                  <option [ngValue]="community.id">
-                    {{ community.name }}
-                    - {{ community.municipality }}
-                  </option>
+                <option [ngValue]="community.id">
+                  {{ community.name }}
+                  - {{ community.municipality }}
+                </option>
                 }
 
               </select>
 
-              <button
-                type="button"
-                class="btn btn-outline-primary text-nowrap"
-                (click)="openCommunityModal()">
+              <button type="button" class="btn btn-outline-primary text-nowrap" (click)="openCommunityModal()">
 
                 + Nueva
               </button>
@@ -132,15 +124,15 @@
             </div>
 
             @if (isLoadingCommunities) {
-              <small class="text-body-secondary">
-                Cargando comunidades...
-              </small>
+            <small class="text-body-secondary">
+              Cargando comunidades...
+            </small>
             }
 
             @if (!isLoadingCommunities && communities.length === 0) {
-              <small class="text-warning d-block mt-1">
-                No hay comunidades activas. Puedes crear una nueva.
-              </small>
+            <small class="text-warning d-block mt-1">
+              No hay comunidades activas. Puedes crear una nueva.
+            </small>
             }
 
           </div>
@@ -154,12 +146,7 @@
               Código *
             </label>
 
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="sensorCode"
-              name="sensorCode"
-              maxlength="50"
+            <input type="text" class="form-control" [(ngModel)]="sensorCode" name="sensorCode" maxlength="50"
               placeholder="Ej. TEMP-002">
 
             <small class="text-body-secondary">
@@ -177,12 +164,7 @@
               Nombre *
             </label>
 
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="sensorName"
-              name="sensorName"
-              maxlength="150"
+            <input type="text" class="form-control" [(ngModel)]="sensorName" name="sensorName" maxlength="150"
               placeholder="Ej. Sensor de temperatura norte">
 
           </div>
@@ -196,16 +178,13 @@
               Tipo de sensor *
             </label>
 
-            <select
-              class="form-select"
-              [(ngModel)]="sensorType"
-              name="sensorType"
+            <select class="form-select" [(ngModel)]="sensorType" name="sensorType"
               (ngModelChange)="onSensorTypeChange()">
 
               @for (type of sensorTypes; track type.value) {
-                <option [value]="type.value">
-                  {{ type.label }}
-                </option>
+              <option [value]="type.value">
+                {{ type.label }}
+              </option>
               }
 
             </select>
@@ -223,28 +202,20 @@
 
             @if (!allowsCustomUnit) {
 
-              <select
-                class="form-select"
-                [(ngModel)]="sensorUnit"
-                name="sensorUnit">
+            <select class="form-select" [(ngModel)]="sensorUnit" name="sensorUnit">
 
-                @for (unit of availableUnits; track unit) {
-                  <option [value]="unit">
-                    {{ unit }}
-                  </option>
-                }
+              @for (unit of availableUnits; track unit) {
+              <option [value]="unit">
+                {{ unit }}
+              </option>
+              }
 
-              </select>
+            </select>
 
             } @else {
 
-              <input
-                type="text"
-                class="form-control"
-                [(ngModel)]="sensorUnit"
-                name="sensorUnit"
-                maxlength="20"
-                placeholder="Ej. µg/m³, dB, NTU">
+            <input type="text" class="form-control" [(ngModel)]="sensorUnit" name="sensorUnit" maxlength="20"
+              placeholder="Ej. µg/m³, dB, NTU">
 
             }
 
@@ -263,12 +234,7 @@
               Ubicación
             </label>
 
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="sensorLocation"
-              name="sensorLocation"
-              maxlength="200"
+            <input type="text" class="form-control" [(ngModel)]="sensorLocation" name="sensorLocation" maxlength="200"
               placeholder="Ej. Sector Norte - Escuela">
 
             <small class="text-body-secondary">
@@ -286,11 +252,7 @@
               Fecha de instalación
             </label>
 
-            <input
-              type="date"
-              class="form-control"
-              [(ngModel)]="sensorInstallationDate"
-              name="sensorInstallationDate">
+            <input type="date" class="form-control" [(ngModel)]="sensorInstallationDate" name="sensorInstallationDate">
 
           </div>
 
@@ -303,10 +265,7 @@
               Estado
             </label>
 
-            <select
-              class="form-select"
-              [(ngModel)]="sensorIsActive"
-              name="sensorIsActive"
+            <select class="form-select" [(ngModel)]="sensorIsActive" name="sensorIsActive"
               [disabled]="editingSensorId !== null">
 
               <option [ngValue]="true">
@@ -320,10 +279,10 @@
             </select>
 
             @if (editingSensorId !== null) {
-              <small class="text-body-secondary">
-                Para cambiar el estado utiliza la opción
-                Activar/Desactivar del listado.
-              </small>
+            <small class="text-body-secondary">
+              Para cambiar el estado utiliza la opción
+              Activar/Desactivar del listado.
+            </small>
             }
 
           </div>
@@ -337,13 +296,8 @@
               Descripción
             </label>
 
-            <textarea
-              class="form-control"
-              rows="3"
-              [(ngModel)]="sensorDescription"
-              name="sensorDescription"
-              maxlength="500"
-              placeholder="Descripción, observaciones o información adicional del sensor">
+            <textarea class="form-control" rows="3" [(ngModel)]="sensorDescription" name="sensorDescription"
+              maxlength="500" placeholder="Descripción, observaciones o información adicional del sensor">
             </textarea>
 
           </div>
@@ -353,11 +307,11 @@
 
           @if (saveMessage) {
 
-            <div class="col-12">
-              <div class="alert alert-success mb-0">
-                {{ saveMessage }}
-              </div>
+          <div class="col-12">
+            <div class="alert alert-success mb-0">
+              {{ saveMessage }}
             </div>
+          </div>
 
           }
 
@@ -366,11 +320,11 @@
 
           @if (saveError) {
 
-            <div class="col-12">
-              <div class="alert alert-danger mb-0">
-                {{ saveError }}
-              </div>
+          <div class="col-12">
+            <div class="alert alert-danger mb-0">
+              {{ saveError }}
             </div>
+          </div>
 
           }
 
@@ -383,29 +337,22 @@
 
               @if (editingSensorId !== null) {
 
-                <button
-                  type="button"
-                  class="btn btn-outline-secondary"
-                  (click)="cancelEdit()"
-                  [disabled]="isSaving">
+              <button type="button" class="btn btn-outline-secondary" (click)="cancelEdit()" [disabled]="isSaving">
 
-                  Cancelar
-                </button>
+                Cancelar
+              </button>
 
               }
 
-              <button
-                type="button"
-                class="btn btn-primary"
-                (click)="saveSensor()"
+              <button type="button" class="btn btn-primary" (click)="saveSensor()"
                 [disabled]="isSaving || isLoadingCommunities">
 
                 {{
-                  isSaving
-                    ? 'Guardando...'
-                    : editingSensorId === null
-                      ? 'Registrar sensor'
-                      : 'Guardar cambios'
+                isSaving
+                ? 'Guardando...'
+                : editingSensorId === null
+                ? 'Registrar sensor'
+                : 'Guardar cambios'
                 }}
 
               </button>
@@ -456,13 +403,8 @@
               Buscar
             </label>
 
-            <input
-              type="search"
-              class="form-control"
-              [(ngModel)]="filterSearch"
-              name="filterSearch"
-              placeholder="Nombre, código o tipo"
-              (keyup.enter)="filterSensors()">
+            <input type="search" class="form-control" [(ngModel)]="filterSearch" name="filterSearch"
+              placeholder="Nombre, código o tipo" (keyup.enter)="filterSensors()">
 
           </div>
 
@@ -473,13 +415,8 @@
               Código
             </label>
 
-            <input
-              type="text"
-              class="form-control"
-              [(ngModel)]="filterCode"
-              name="filterCode"
-              placeholder="Ej. TEMP-001"
-              (keyup.enter)="filterSensors()">
+            <input type="text" class="form-control" [(ngModel)]="filterCode" name="filterCode"
+              placeholder="Ej. TEMP-001" (keyup.enter)="filterSensors()">
 
           </div>
 
@@ -490,19 +427,16 @@
               Tipo
             </label>
 
-            <select
-              class="form-select"
-              [(ngModel)]="filterType"
-              name="filterType">
+            <select class="form-select" [(ngModel)]="filterType" name="filterType">
 
               <option value="">
                 Todos
               </option>
 
               @for (type of sensorTypes; track type.value) {
-                <option [value]="type.value">
-                  {{ type.label }}
-                </option>
+              <option [value]="type.value">
+                {{ type.label }}
+              </option>
               }
 
             </select>
@@ -516,19 +450,16 @@
               Comunidad
             </label>
 
-            <select
-              class="form-select"
-              [(ngModel)]="filterCommunityId"
-              name="filterCommunityId">
+            <select class="form-select" [(ngModel)]="filterCommunityId" name="filterCommunityId">
 
               <option [ngValue]="null">
                 Todas
               </option>
 
               @for (community of communities; track community.id) {
-                <option [ngValue]="community.id">
-                  {{ community.name }}
-                </option>
+              <option [ngValue]="community.id">
+                {{ community.name }}
+              </option>
               }
 
             </select>
@@ -542,10 +473,7 @@
               Estado
             </label>
 
-            <select
-              class="form-select"
-              [(ngModel)]="filterStatus"
-              name="filterStatus">
+            <select class="form-select" [(ngModel)]="filterStatus" name="filterStatus">
 
               <option value="">
                 Todos
@@ -566,29 +494,30 @@
 
           <div class="col-xl-1 col-md-6 d-flex align-items-end">
 
-                    <button
-            type="button"
-            class="btn btn-outline-primary w-100"
-            (click)="filterSensors()"
-            [disabled]="isLoadingSensors">
+            <button type="button" class="btn btn-outline-primary w-100" (click)="filterSensors()"
+              [disabled]="isLoadingSensors">
 
-            Filtrar
+              Filtrar
 
-          </button>
+            </button>
 
           </div>
-
-
           <div class="col-12">
 
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-secondary"
-              (click)="clearFilters()">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearFilters()">
 
               Limpiar filtros
             </button>
-
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="downloadSensorsPdf()"
+              [disabled]="isLoadingSensors || isGeneratingPdf || sensors.length === 0">
+              <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>
+              {{ isGeneratingPdf ? 'Generando PDF...' : 'Descargar PDF' }}
+            </button>
+            @if (pdfExportError) {
+            <div class="alert alert-danger py-2 mt-2 mb-0" role="alert">
+              {{ pdfExportError }}
+            </div>
+            }
           </div>
 
         </div>
@@ -598,9 +527,9 @@
 
         @if (sensorListError) {
 
-          <div class="alert alert-danger">
-            {{ sensorListError }}
-          </div>
+        <div class="alert alert-danger">
+          {{ sensorListError }}
+        </div>
 
         }
 
@@ -634,146 +563,129 @@
 
               @for (sensor of sensors; track sensor.id) {
 
-                <tr>
+              <tr>
 
-                  <td>
-                    <span class="fw-semibold">
-                      {{ sensor.code }}
-                    </span>
-                  </td>
-
-
-                  <td>
-
-                    <div class="fw-medium">
-                      {{ sensor.name }}
-                    </div>
-
-                    @if (sensor.description) {
-                      <small class="text-body-secondary">
-                        {{ sensor.description }}
-                      </small>
-                    }
-
-                  </td>
+                <td>
+                  <span class="fw-semibold">
+                    {{ sensor.code }}
+                  </span>
+                </td>
 
 
-                  <td>
-                    {{ getSensorTypeLabel(sensor.type) }}
-                  </td>
+                <td>
+
+                  <div class="fw-medium">
+                    {{ sensor.name }}
+                  </div>
+
+                  @if (sensor.description) {
+                  <small class="text-body-secondary">
+                    {{ sensor.description }}
+                  </small>
+                  }
+
+                </td>
 
 
-                  <td>
-                    {{ sensor.communityName }}
-                  </td>
+                <td>
+                  {{ getSensorTypeLabel(sensor.type) }}
+                </td>
 
 
-                  <td>
+                <td>
+                  {{ sensor.communityName }}
+                </td>
+
+
+                <td>
+                  {{
+                  sensor.location ||
+                  'Sin ubicación'
+                  }}
+                </td>
+
+
+                <td>
+                  {{ sensor.unit }}
+                </td>
+
+
+                <td>
+
+                  <span class="badge" [class.text-bg-success]="sensor.isActive"
+                    [class.text-bg-secondary]="!sensor.isActive">
+
                     {{
-                      sensor.location ||
-                      'Sin ubicación'
+                    sensor.isActive
+                    ? 'Activo'
+                    : 'Inactivo'
                     }}
-                  </td>
+
+                  </span>
+
+                </td>
 
 
-                  <td>
-                    {{ sensor.unit }}
-                  </td>
+                <td class="text-end">
+
+                  <div class="d-flex flex-wrap justify-content-end gap-2">
+
+                    <button type="button" class="btn btn-sm btn-outline-primary" (click)="editSensor(sensor)">
+
+                      Editar
+                    </button>
 
 
-                  <td>
+                    <button type="button" class="btn btn-sm btn-outline-warning" (click)="openSimulationModal(sensor)"
+                      [disabled]="!sensor.isActive">
 
-                    <span
-                      class="badge"
-                      [class.text-bg-success]="sensor.isActive"
-                      [class.text-bg-secondary]="!sensor.isActive">
+                      Valor simulado
+                    </button>
+
+
+                    <button type="button" class="btn btn-sm" [class.btn-outline-danger]="sensor.isActive"
+                      [class.btn-outline-success]="!sensor.isActive" (click)="toggleStatus(sensor)">
 
                       {{
-                        sensor.isActive
-                          ? 'Activo'
-                          : 'Inactivo'
+                      sensor.isActive
+                      ? 'Desactivar'
+                      : 'Activar'
                       }}
 
-                    </span>
+                    </button>
 
-                  </td>
+                  </div>
 
+                </td>
 
-                  <td class="text-end">
-
-                    <div
-                      class="d-flex flex-wrap justify-content-end gap-2">
-
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-outline-primary"
-                        (click)="editSensor(sensor)">
-
-                        Editar
-                      </button>
-
-
-                      <button
-                        type="button"
-                        class="btn btn-sm btn-outline-warning"
-                        (click)="openSimulationModal(sensor)"
-                        [disabled]="!sensor.isActive">
-
-                        Valor simulado
-                      </button>
-
-
-                      <button
-                        type="button"
-                        class="btn btn-sm"
-                        [class.btn-outline-danger]="sensor.isActive"
-                        [class.btn-outline-success]="!sensor.isActive"
-                        (click)="toggleStatus(sensor)">
-
-                        {{
-                          sensor.isActive
-                            ? 'Desactivar'
-                            : 'Activar'
-                        }}
-
-                      </button>
-
-                    </div>
-
-                  </td>
-
-                </tr>
+              </tr>
 
               }
 
 
               @if (isLoadingSensors) {
 
-                <tr>
+              <tr>
 
-                  <td
-                    colspan="8"
-                    class="text-center text-body-secondary py-5">
+                <td colspan="8" class="text-center text-body-secondary py-5">
 
-                    Consultando sensores...
+                  Consultando sensores...
 
-                  </td>
+                </td>
 
-                </tr>
+              </tr>
 
               } @else if (sensors.length === 0) {
 
-                <tr>
+              <tr>
 
-                  <td
-                    colspan="8"
-                    class="text-center text-body-secondary py-5">
+                <td colspan="8" class="text-center text-body-secondary py-5">
 
-                    No se encontraron sensores con los filtros seleccionados.
+                  No se encontraron sensores con los filtros seleccionados.
 
-                  </td>
+                </td>
 
-                </tr>
+              </tr>
 
               }
 
@@ -788,48 +700,41 @@
 
         @if (totalPages > 1) {
 
-          <div
-            class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3">
 
-            <small class="text-body-secondary">
+          <small class="text-body-secondary">
 
-              Página
-              {{ currentPage }}
-              de
-              {{ totalPages }}
+            Página
+            {{ currentPage }}
+            de
+            {{ totalPages }}
 
-              ·
+            ·
 
-              {{ totalItems }}
-              registros
+            {{ totalItems }}
+            registros
 
-            </small>
-
-
-            <div class="btn-group">
-
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-secondary"
-                (click)="previousPage()"
-                [disabled]="currentPage <= 1 || isLoadingSensors">
-
-                Anterior
-              </button>
+          </small>
 
 
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-secondary"
-                (click)="nextPage()"
-                [disabled]="currentPage >= totalPages || isLoadingSensors">
+          <div class="btn-group">
 
-                Siguiente
-              </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="previousPage()"
+              [disabled]="currentPage <= 1 || isLoadingSensors">
 
-            </div>
+              Anterior
+            </button>
+
+
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="nextPage()"
+              [disabled]="currentPage >= totalPages || isLoadingSensors">
+
+              Siguiente
+            </button>
 
           </div>
+
+        </div>
 
         }
 
@@ -845,10 +750,7 @@
 <!-- MODAL - VALOR SIMULADO -->
 <!-- ========================================================= -->
 
-<app-modal
-  [isOpen]="isSimulationModalOpen"
-  (close)="closeSimulationModal()"
-  className="max-w-xl mx-4">
+<app-modal [isOpen]="isSimulationModalOpen" (close)="closeSimulationModal()" className="max-w-xl mx-4">
 
   <div class="p-4 p-md-5">
 
@@ -866,63 +768,61 @@
 
     @if (selectedSimulationSensor) {
 
-      <div class="card bg-body-tertiary border-0 mb-4">
+    <div class="card bg-body-tertiary border-0 mb-4">
 
-        <div class="card-body">
+      <div class="card-body">
 
-          <div class="row g-3">
+        <div class="row g-3">
 
-            <div class="col-sm-6">
+          <div class="col-sm-6">
 
-              <small class="text-body-secondary d-block">
-                Sensor
-              </small>
+            <small class="text-body-secondary d-block">
+              Sensor
+            </small>
 
-              <span class="fw-semibold">
-                {{ selectedSimulationSensor.name }}
-              </span>
+            <span class="fw-semibold">
+              {{ selectedSimulationSensor.name }}
+            </span>
 
-            </div>
+          </div>
 
-            <div class="col-sm-6">
+          <div class="col-sm-6">
 
-              <small class="text-body-secondary d-block">
-                Código
-              </small>
+            <small class="text-body-secondary d-block">
+              Código
+            </small>
 
-              <span class="fw-semibold">
-                {{ selectedSimulationSensor.code }}
-              </span>
+            <span class="fw-semibold">
+              {{ selectedSimulationSensor.code }}
+            </span>
 
-            </div>
+          </div>
 
-            <div class="col-sm-6">
+          <div class="col-sm-6">
 
-              <small class="text-body-secondary d-block">
-                Tipo
-              </small>
+            <small class="text-body-secondary d-block">
+              Tipo
+            </small>
 
-              <span>
-                {{
-                  getSensorTypeLabel(
-                    selectedSimulationSensor.type
-                  )
-                }}
-              </span>
+            <span>
+              {{
+              getSensorTypeLabel(
+              selectedSimulationSensor.type
+              )
+              }}
+            </span>
 
-            </div>
+          </div>
 
-            <div class="col-sm-6">
+          <div class="col-sm-6">
 
-              <small class="text-body-secondary d-block">
-                Unidad
-              </small>
+            <small class="text-body-secondary d-block">
+              Unidad
+            </small>
 
-              <span>
-                {{ selectedSimulationSensor.unit }}
-              </span>
-
-            </div>
+            <span>
+              {{ selectedSimulationSensor.unit }}
+            </span>
 
           </div>
 
@@ -930,112 +830,97 @@
 
       </div>
 
+    </div>
 
-      <div class="mb-3">
 
-        <label class="form-label">
-          Valor simulado *
-        </label>
+    <div class="mb-3">
 
-        <div class="input-group">
+      <label class="form-label">
+        Valor simulado *
+      </label>
 
-          <input
-            type="number"
-            class="form-control"
-            [(ngModel)]="simulationValue"
-            name="simulationValue"
-            step="0.01"
-            placeholder="Ingresa un valor">
+      <div class="input-group">
 
-          <span class="input-group-text">
-            {{ selectedSimulationSensor.unit }}
-          </span>
+        <input type="number" class="form-control" [(ngModel)]="simulationValue" name="simulationValue" step="0.01"
+          placeholder="Ingresa un valor">
 
-        </div>
-
-        <small class="text-body-secondary">
-          El simulador utilizará este valor en las siguientes
-          lecturas hasta que el sensor vuelva al modo automático.
-        </small>
+        <span class="input-group-text">
+          {{ selectedSimulationSensor.unit }}
+        </span>
 
       </div>
 
+      <small class="text-body-secondary">
+        El simulador utilizará este valor en las siguientes
+        lecturas hasta que el sensor vuelva al modo automático.
+      </small>
 
-      @if (simulationMessage) {
-
-        <div class="alert alert-success">
-          {{ simulationMessage }}
-        </div>
-
-      }
+    </div>
 
 
-      @if (simulationError) {
+    @if (simulationMessage) {
 
-        <div class="alert alert-danger">
-          {{ simulationError }}
-        </div>
+    <div class="alert alert-success">
+      {{ simulationMessage }}
+    </div>
 
-      }
+    }
 
 
-      <div class="d-flex flex-wrap justify-content-between gap-2 mt-4">
+    @if (simulationError) {
 
-        <button
-          type="button"
-          class="btn btn-outline-secondary"
-          (click)="resetSimulationValue()"
-          [disabled]="
+    <div class="alert alert-danger">
+      {{ simulationError }}
+    </div>
+
+    }
+
+
+    <div class="d-flex flex-wrap justify-content-between gap-2 mt-4">
+
+      <button type="button" class="btn btn-outline-secondary" (click)="resetSimulationValue()" [disabled]="
             isSavingSimulation ||
             isResettingSimulation
           ">
 
-          {{
-            isResettingSimulation
-              ? 'Restableciendo...'
-              : 'Volver a automático'
-          }}
+        {{
+        isResettingSimulation
+        ? 'Restableciendo...'
+        : 'Volver a automático'
+        }}
 
-        </button>
+      </button>
 
 
-        <div class="d-flex gap-2">
+      <div class="d-flex gap-2">
 
-          <button
-            type="button"
-            class="btn btn-outline-secondary"
-            (click)="closeSimulationModal()"
-            [disabled]="
+        <button type="button" class="btn btn-outline-secondary" (click)="closeSimulationModal()" [disabled]="
               isSavingSimulation ||
               isResettingSimulation
             ">
 
-            Cerrar
+          Cerrar
 
-          </button>
+        </button>
 
 
-          <button
-            type="button"
-            class="btn btn-warning"
-            (click)="applySimulationValue()"
-            [disabled]="
+        <button type="button" class="btn btn-warning" (click)="applySimulationValue()" [disabled]="
               isSavingSimulation ||
               isResettingSimulation ||
               simulationValue === null
             ">
 
-            {{
-              isSavingSimulation
-                ? 'Aplicando...'
-                : 'Aplicar valor'
-            }}
+          {{
+          isSavingSimulation
+          ? 'Aplicando...'
+          : 'Aplicar valor'
+          }}
 
-          </button>
-
-        </div>
+        </button>
 
       </div>
+
+    </div>
 
     }
 
@@ -1048,10 +933,7 @@
 <!-- MODAL - NUEVA COMUNIDAD -->
 <!-- ========================================================= -->
 
-<app-modal
-  [isOpen]="isCommunityModalOpen"
-  (close)="closeCommunityModal()"
-  className="max-w-3xl mx-4">
+<app-modal [isOpen]="isCommunityModalOpen" (close)="closeCommunityModal()" className="max-w-3xl mx-4">
 
   <div class="p-4 p-md-5">
 
@@ -1076,12 +958,7 @@
           Nombre *
         </label>
 
-        <input
-          type="text"
-          class="form-control"
-          [(ngModel)]="newCommunityName"
-          name="newCommunityName"
-          maxlength="150"
+        <input type="text" class="form-control" [(ngModel)]="newCommunityName" name="newCommunityName" maxlength="150"
           placeholder="Ej. Comunidad El Rosario">
 
       </div>
@@ -1093,13 +970,8 @@
           Municipio *
         </label>
 
-        <input
-          type="text"
-          class="form-control"
-          [(ngModel)]="newCommunityMunicipality"
-          name="newCommunityMunicipality"
-          maxlength="100"
-          placeholder="Ej. Villa Canales">
+        <input type="text" class="form-control" [(ngModel)]="newCommunityMunicipality" name="newCommunityMunicipality"
+          maxlength="100" placeholder="Ej. Villa Canales">
 
       </div>
 
@@ -1110,13 +982,8 @@
           Departamento *
         </label>
 
-        <input
-          type="text"
-          class="form-control"
-          [(ngModel)]="newCommunityDepartment"
-          name="newCommunityDepartment"
-          maxlength="100"
-          placeholder="Ej. Guatemala">
+        <input type="text" class="form-control" [(ngModel)]="newCommunityDepartment" name="newCommunityDepartment"
+          maxlength="100" placeholder="Ej. Guatemala">
 
       </div>
 
@@ -1127,13 +994,8 @@
           País *
         </label>
 
-        <input
-          type="text"
-          class="form-control"
-          [(ngModel)]="newCommunityCountry"
-          name="newCommunityCountry"
-          maxlength="100"
-          placeholder="Guatemala">
+        <input type="text" class="form-control" [(ngModel)]="newCommunityCountry" name="newCommunityCountry"
+          maxlength="100" placeholder="Guatemala">
 
       </div>
 
@@ -1144,15 +1006,8 @@
           Latitud
         </label>
 
-        <input
-          type="number"
-          class="form-control"
-          [(ngModel)]="newCommunityLatitude"
-          name="newCommunityLatitude"
-          min="-90"
-          max="90"
-          step="0.000001"
-          placeholder="Ej. 14.634915">
+        <input type="number" class="form-control" [(ngModel)]="newCommunityLatitude" name="newCommunityLatitude"
+          min="-90" max="90" step="0.000001" placeholder="Ej. 14.634915">
 
         <small class="text-body-secondary">
           Valores permitidos: -90 a 90.
@@ -1167,15 +1022,8 @@
           Longitud
         </label>
 
-        <input
-          type="number"
-          class="form-control"
-          [(ngModel)]="newCommunityLongitude"
-          name="newCommunityLongitude"
-          min="-180"
-          max="180"
-          step="0.000001"
-          placeholder="Ej. -90.506882">
+        <input type="number" class="form-control" [(ngModel)]="newCommunityLongitude" name="newCommunityLongitude"
+          min="-180" max="180" step="0.000001" placeholder="Ej. -90.506882">
 
         <small class="text-body-secondary">
           Valores permitidos: -180 a 180.
@@ -1190,13 +1038,8 @@
           Descripción
         </label>
 
-        <textarea
-          class="form-control"
-          rows="3"
-          [(ngModel)]="newCommunityDescription"
-          name="newCommunityDescription"
-          maxlength="500"
-          placeholder="Descripción o información adicional de la comunidad">
+        <textarea class="form-control" rows="3" [(ngModel)]="newCommunityDescription" name="newCommunityDescription"
+          maxlength="500" placeholder="Descripción o información adicional de la comunidad">
         </textarea>
 
       </div>
@@ -1208,10 +1051,7 @@
           Estado
         </label>
 
-        <select
-          class="form-select"
-          [(ngModel)]="newCommunityIsActive"
-          name="newCommunityIsActive">
+        <select class="form-select" [(ngModel)]="newCommunityIsActive" name="newCommunityIsActive">
 
           <option [ngValue]="true">
             Activa
@@ -1232,13 +1072,13 @@
 
       @if (communityError) {
 
-        <div class="col-12">
+      <div class="col-12">
 
-          <div class="alert alert-danger mb-0">
-            {{ communityError }}
-          </div>
-
+        <div class="alert alert-danger mb-0">
+          {{ communityError }}
         </div>
+
+      </div>
 
       }
 
@@ -1247,31 +1087,24 @@
 
         <div class="d-flex justify-content-end gap-2 mt-2">
 
-          <button
-            type="button"
-            class="btn btn-outline-secondary"
-            (click)="closeCommunityModal()"
+          <button type="button" class="btn btn-outline-secondary" (click)="closeCommunityModal()"
             [disabled]="isSavingCommunity">
 
             Cancelar
           </button>
 
 
-          <button
-            type="button"
-            class="btn btn-primary"
-            (click)="saveCommunity()"
-            [disabled]="isSavingCommunity">
+          <button type="button" class="btn btn-primary" (click)="saveCommunity()" [disabled]="isSavingCommunity">
 
             {{
-              isSavingCommunity
-                ? 'Guardando...'
-                : 'Crear comunidad'
+            isSavingCommunity
+            ? 'Guardando...'
+            : 'Crear comunidad'
             }}
 
           </button>
 
-            </div>
+        </div>
 
       </div>
 

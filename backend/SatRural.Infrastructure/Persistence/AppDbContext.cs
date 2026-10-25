@@ -42,6 +42,12 @@ public class AppDbContext : DbContext
     public DbSet<AuditLog> AuditLogs =>
         Set<AuditLog>();
 
+    public DbSet<Attachment> Attachments =>
+        Set<Attachment>();
+
+    public DbSet<Clase> Clases =>
+        Set<Clase>();
+
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {

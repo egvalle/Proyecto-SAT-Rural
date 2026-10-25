@@ -1,4 +1,26 @@
 services:
+  community-db:
+    image: postgres:17-alpine
+
+    container_name: sat-rural-community-db
+
+    environment:
+      POSTGRES_DB: satrural_community
+      POSTGRES_USER: "${COMMUNITY_DB_USER:?Define COMMUNITY_DB_USER en .env}"
+      POSTGRES_PASSWORD: "${COMMUNITY_DB_PASSWORD:?Define COMMUNITY_DB_PASSWORD en .env}"
+
+    volumes:
+      - community-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+    restart: unless-stopped
+
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: sat-rural-sqlserver
@@ -36,14 +58,89 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:8080"
-
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=${MSSQL_DATABASE};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"
+      Jwt__Key: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
+      Jwt__Issuer: "SatRural.Api"
+      Jwt__Audience: "SatRural.Client"
 
     ports:
       - "8080:8080"
 
     depends_on:
       - sqlserver
+
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: ./backend
+      dockerfile: SatRural.Gateway/Dockerfile
+
+    container_name: sat-rural-gateway
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ReverseProxy__Clusters__legacy-api__Destinations__destination1__Address: "http://api:8080/"
+      ReverseProxy__Clusters__auth-service__Destinations__destination1__Address: "http://auth-service:8080/"
+      ReverseProxy__Clusters__community-service__Destinations__destination1__Address: "http://community-service:8080/"
+      ReverseProxy__Clusters__report-service__Destinations__destination1__Address: "http://report-service:8000/"
+      Jwt__Key: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
+      Jwt__Issuer: "SatRural.Api"
+      Jwt__Audience: "SatRural.Client"
+
+    ports:
+      - "8081:8080"
+
+    depends_on:
+      - api
+      - auth-service
+      - report-service
+
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ./backend
+      dockerfile: SatRural.AuthService/Dockerfile
+
+    container_name: sat-rural-auth-service
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=${MSSQL_DATABASE};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"
+      Jwt__Key: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
+      Jwt__Issuer: "SatRural.Api"
+      Jwt__Audience: "SatRural.Client"
+
+    ports:
+      - "127.0.0.1:8082:8080"
+
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+  community-service:
+    build:
+      context: ./backend
+      dockerfile: SatRural.CommunityService/Dockerfile
+
+    container_name: sat-rural-community-service
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__CommunityDatabase: "Host=community-db;Port=5432;Database=satrural_community;Username=${COMMUNITY_DB_USER};Password=${COMMUNITY_DB_PASSWORD}"
+
+    ports:
+      - "127.0.0.1:8083:8080"
+
+    depends_on:
+      community-db:
+        condition: service_healthy
 
     restart: unless-stopped
 
@@ -58,9 +155,66 @@ services:
       - "4200:80"
 
     depends_on:
-      - api
+      - gateway
 
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:8
+    container_name: sat-rural-mongodb
+
+    ports:
+      - "127.0.0.1:27017:27017"
+
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_ROOT_USERNAME:?Define MONGO_ROOT_USERNAME en .env}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_ROOT_PASSWORD:?Define MONGO_ROOT_PASSWORD en .env}"
+    
+    volumes:
+      - mongodb-data:/data/db
+    
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "mongosh --quiet --username \"$${MONGO_INITDB_ROOT_USERNAME}\" --password \"$${MONGO_INITDB_ROOT_PASSWORD}\" --authenticationDatabase admin --eval \"db.adminCommand('ping').ok\""
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+    restart: unless-stopped
+
+  report-service:
+    build:
+      context: ./report-service
+      dockerfile: Dockerfile
+
+    container_name: sat-rural-report-service
+
+    environment:
+      MONGO_URI: "mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/?authSource=admin"
+      JWT_KEY: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
+      JWT_ISSUER: "SatRural.Api"
+      JWT_AUDIENCE: "SatRural.Client"
+      ALERTS_API_URL: "http://api:8080/api/alerts"
+      REPORT_STORAGE_PATH: "/app/storage"
+
+    volumes:
+      - report-files:/app/storage
+    
+    ports:
+      - "8000:8000"
+    
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    
     restart: unless-stopped
 
 volumes:
   sqlserver-data:
+  mongodb-data:
+  report-files:
+  community-data:

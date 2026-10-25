@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de alertas SAT-Rural</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 16mm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            color: #1f2937;
+            font-size: 10px;
+        }
+
+        h1 {
+            color: #14532d;
+            margin-bottom: 4px;
+        }
+
+        .metadata {
+            color: #4b5563;
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #d1d5db;
+            padding: 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #14532d;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f3f4f6;
+        }
+
+        .level-RED {
+            color: #b91c1c;
+            font-weight: bold;
+        }
+
+        .level-ORANGE {
+            color: #c2410c;
+            font-weight: bold;
+        }
+
+        .level-YELLOW {
+            color: #a16207;
+            font-weight: bold;
+        }
+
+        .level-GREEN {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .empty {
+            padding: 16px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        footer {
+            margin-top: 16px;
+            color: #6b7280;
+            font-size: 9px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reporte de alertas SAT-Rural</h1>
+
+    <div class="metadata">
+        <div>Generado: {{ generated_at }}</div>
+        <div>Usuario: {{ generated_by }}</div>
+        <div>
+            Filtros:
+            nivel={{ filters.level or "todos" }},
+            activas={{ "sí" if filters.is_active is none else ("sí" if filters.is_active else "no") }}
+        </div>
+        <div>Total de alertas: {{ alerts | length }}</div>
+    </div>
+
+    {% if alerts %}
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha y hora</th>
+                <th>Comunidad</th>
+                <th>Sensor</th>
+                <th>Fenómeno</th>
+                <th>Nivel</th>
+                <th>Valor detectado</th>
+                <th>Umbral</th>
+                <th>Mensaje</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr>
+                <td>{{ alert.createdAt or "—" }}</td>
+                <td>{{ alert.communityId or "—" }}</td>
+                <td>{{ alert.sensorId or "—" }}</td>
+                <td>{{ alert.type or "—" }}</td>
+                <td class="level-{{ alert.level }}">{{ alert.level or "—" }}</td>
+                <td>{{ alert.detectedValue if alert.detectedValue is not none else "—" }}</td>
+                <td>{{ alert.thresholdValue if alert.thresholdValue is not none else "—" }}</td>
+                <td>{{ alert.message or "—" }}</td>
+                <td>{{ "Activa" if alert.isActive else "Resuelta" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No se encontraron alertas para los filtros seleccionados.</div>
+    {% endif %}
+
+    <footer>
+        SAT-Rural — Sistema de monitoreo y alerta temprana para comunidades rurales
+    </footer>
+</body>
+</html>

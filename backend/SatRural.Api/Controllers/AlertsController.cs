@@ -55,7 +55,10 @@ public class AlertsController : ControllerBase
                 Message = alert.Message,
                 CreatedAt = alert.CreatedAt,
                 ResolvedAt = alert.ResolvedAt,
-                IsActive = alert.IsActive
+                IsActive = alert.IsActive,
+                AlertRuleId = alert.AlertRuleId,
+                DetectedValue = alert.DetectedValue,
+                ThresholdValue = alert.ThresholdValue
             })
             .ToListAsync();
 

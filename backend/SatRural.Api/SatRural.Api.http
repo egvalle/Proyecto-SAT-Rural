@@ -22,4 +22,69 @@ Content-Type: application/json
 	"isActive": true
 }
 
+### Exportar una colección de sensores como CSV
+POST {{SatRural.Api_HostAddress}}/api/sensors/export-csv
+Content-Type: application/json
+Accept: text/csv
+
+[
+  {
+    "communityId": 1,
+    "code": "TEMP-002",
+    "name": "Temperatura secundaria",
+    "type": "TEMPERATURE",
+    "unit": "°C",
+    "isActive": true
+  },
+  {
+    "communityId": 1,
+    "code": "HUM-001",
+    "name": "Humedad",
+    "type": "HUMIDITY",
+    "unit": "%",
+    "isActive": true
+  }
+]
+
+### Crear clase para adjuntos
+POST {{SatRural.Api_HostAddress}}/api/clases
+Content-Type: application/json
+
+{
+  "clase": "Lecturas",
+  "descripcion": "Archivos con lecturas de sensores"
+}
+
+### Consultar una clase
+GET {{SatRural.Api_HostAddress}}/api/clases/1
+Accept: application/json
+
+### Crear adjunto con datos JSON (IdClase debe existir)
+POST {{SatRural.Api_HostAddress}}/api/attachments
+Content-Type: application/json
+
+{
+  "idClase": 1,
+  "name": "Lecturas de sensores",
+  "urlcomplete": "https://ejemplo.com/archivos/lecturas.json",
+  "urlrelative": "/archivos/lecturas.json",
+  "type": "application/json",
+  "data": [
+    {
+      "sensorId": 1,
+      "value": 24.5,
+      "unit": "°C"
+    },
+    {
+      "sensorId": 2,
+      "value": 68,
+      "unit": "%"
+    }
+  ]
+}
+
+### Consultar un adjunto por ID
+GET {{SatRural.Api_HostAddress}}/api/attachments/1
+Accept: application/json
+
 ###

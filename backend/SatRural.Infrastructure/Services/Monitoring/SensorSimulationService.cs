@@ -18,7 +18,7 @@ public class SensorSimulationService : BackgroundService
     private readonly IMonitoringNotifier _notifier;
     private readonly SimulationState _simulationState;
 
-    private string? _lastAlertKey;
+    private readonly Dictionary<int, string> _lastAlertKeys = new();
 
     private readonly Dictionary<string, decimal> _currentValues =
         new()
@@ -81,6 +81,17 @@ public class SensorSimulationService : BackgroundService
             .Where(sensor => sensor.IsActive)
             .ToListAsync(cancellationToken);
 
+        var activeSensorIds = sensors
+            .Select(sensor => sensor.Id)
+            .ToHashSet();
+
+        foreach (var sensorId in _lastAlertKeys.Keys
+            .Where(id => !activeSensorIds.Contains(id))
+            .ToArray())
+        {
+            _lastAlertKeys.Remove(sensorId);
+        }
+
         foreach (var sensor in sensors)
         {
             decimal value;
@@ -96,11 +107,8 @@ public class SensorSimulationService : BackgroundService
 
                 /*
                  * Si el tipo de sensor forma parte de los valores
-                 * utilizados por el sistema de evaluación de riesgo,
-                 * actualizamos también su valor actual.
-                 *
-                 * De esta forma la modificación manual sigue utilizando
-                 * la lógica de alertas existente.
+                 * utilizados por el dashboard, actualizamos también
+                 * su valor actual.
                  */
                 if (_currentValues.ContainsKey(sensor.Type))
                 {
@@ -123,60 +131,60 @@ public class SensorSimulationService : BackgroundService
             };
 
             dbContext.SensorReadings.Add(reading);
-        }
 
-        var risk = await riskEvaluationService.EvaluateAsync(
-            _currentValues["TEMPERATURE"],
-            _currentValues["HUMIDITY"],
-            _currentValues["WIND_SPEED"],
-            _currentValues["RAINFALL"],
-            _currentValues["RIVER_LEVEL"]
-        );
+            var risk = await riskEvaluationService.EvaluateSensorAsync(
+                sensor.Type,
+                value,
+                cancellationToken
+            );
 
-        if (risk.Level != RiskLevel.Green)
-        {
-            var alertKey =
-                $"{risk.Level}:{risk.Message}";
-
-            if (_lastAlertKey != alertKey)
+            if (risk.Level == RiskLevel.Green)
             {
-                var alert = new Alert
-                {
-                    CommunityId = 1,
-                    SensorId = null,
-
-                    Type = risk.Phenomenon,
-
-                    Level = risk.Level
-                        .ToString()
-                        .ToUpperInvariant(),
-
-                    Message = risk.Message,
-
-                    CreatedAt = DateTime.UtcNow,
-
-                    IsActive = true
-                };
-
-                dbContext.Alerts.Add(alert);
-
-                var eventItem = new Event
-                {
-                    Alert = alert,
-                    CommunityId = alert.CommunityId,
-                    EventType = risk.Phenomenon,
-                    Description = risk.Message,
-                    OccurredAt = alert.CreatedAt
-                };
-
-                dbContext.Events.Add(eventItem);
-
-                _lastAlertKey = alertKey;
+                _lastAlertKeys.Remove(sensor.Id);
+                continue;
             }
-        }
-        else
-        {
-            _lastAlertKey = null;
+
+            var alertKey =
+                $"{risk.AlertRuleId}:{risk.Level}:{risk.Message}";
+
+            if (_lastAlertKeys.TryGetValue(
+                    sensor.Id,
+                    out var previousAlertKey) &&
+                previousAlertKey == alertKey)
+            {
+                continue;
+            }
+
+            var alert = new Alert
+            {
+                CommunityId = sensor.CommunityId,
+                SensorId = sensor.Id,
+                Type = risk.Phenomenon,
+                Level = risk.Level
+                    .ToString()
+                    .ToUpperInvariant(),
+                Message = risk.Message,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = true,
+                AlertRuleId = risk.AlertRuleId,
+                DetectedValue = risk.DetectedValue,
+                ThresholdValue = risk.ThresholdValue
+            };
+
+            dbContext.Alerts.Add(alert);
+
+            var eventItem = new Event
+            {
+                Alert = alert,
+                CommunityId = alert.CommunityId,
+                EventType = risk.Phenomenon,
+                Description = risk.Message,
+                OccurredAt = alert.CreatedAt
+            };
+
+            dbContext.Events.Add(eventItem);
+
+            _lastAlertKeys[sensor.Id] = alertKey;
         }
 
         await dbContext.SaveChangesAsync(

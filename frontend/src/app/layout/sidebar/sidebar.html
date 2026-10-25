@@ -72,7 +72,18 @@
 
       <i class="bi bi-clock-history"></i>
       Historial
+    </a>
 
+    <p class="section-title admin-title">
+      REPORTE
+    </p>
+    <a
+      routerLink="/reports"
+      routerLinkActive="active"
+      (click)="close()">
+
+      <i class="bi bi-bar-chart-line"></i>
+      Ejecutivo
     </a>
 
     @if (authService.getRoleId() == 1) {

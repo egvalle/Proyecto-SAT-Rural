@@ -375,6 +375,11 @@
               (click)="clearFilters()">
               Limpiar filtros
             </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="downloadComunitiesPdf()"
+              [disabled]="isLoading || isGeneratingPdf || communities.length === 0">
+              <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>
+              {{ isGeneratingPdf ? 'Generando PDF...' : 'Descargar PDF' }}
+            </button>
           </div>
 
         </div>
@@ -382,6 +387,12 @@
         @if (listError) {
           <div class="alert alert-danger">
             {{ listError }}
+          </div>
+        }
+
+        @if (pdfExportError) {
+          <div class="alert alert-danger">
+            {{ pdfExportError }}
           </div>
         }
 
