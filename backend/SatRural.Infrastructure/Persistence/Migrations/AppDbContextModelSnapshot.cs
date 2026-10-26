@@ -30,11 +30,18 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<int?>("AlertRuleId")
+                        .HasColumnType("int");
+
                     b.Property<int>("CommunityId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("DetectedValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
@@ -52,6 +59,10 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.Property<int?>("SensorId")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("ThresholdValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Type")
                         .IsRequired()

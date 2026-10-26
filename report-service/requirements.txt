@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+pymongo
+jinja2
+weasyprint
+httpx
+PyJWT

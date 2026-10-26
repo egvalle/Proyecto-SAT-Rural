@@ -19,4 +19,10 @@ public class AlertDto
     public DateTime? ResolvedAt { get; set; }
 
     public bool IsActive { get; set; }
+
+    public int? AlertRuleId { get; set; }
+
+    public decimal? DetectedValue { get; set; }
+
+    public decimal? ThresholdValue { get; set; }
 }

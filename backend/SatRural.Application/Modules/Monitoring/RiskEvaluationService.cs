@@ -64,23 +64,95 @@ public class RiskEvaluationService
             {
                 Level = riskLevel,
                 Phenomenon = rule.Phenomenon,
-                Message = rule.Description
+                Message = rule.Description,
+                AlertRuleId = rule.Id,
+                SensorType = rule.SensorType,
+                Operator = rule.Operator,
+                DetectedValue = value,
+                ThresholdValue = rule.ThresholdValue
             });
         }
 
         if (results.Count == 0)
         {
-            return new RiskEvaluationResult
-            {
-                Level = RiskLevel.Green,
-                Phenomenon = string.Empty,
-                Message = "Todos los parámetros se encuentran dentro del rango normal."
-            };
+            return CreateNormalResult(
+                "Todos los parámetros se encuentran dentro del rango normal.");
         }
 
         return results
             .OrderByDescending(result => result.Level)
             .First();
+    }
+
+    public async Task<RiskEvaluationResult> EvaluateSensorAsync(
+        string sensorType,
+        decimal value,
+        CancellationToken cancellationToken = default)
+    {
+        var rules = await _alertRuleRepository.GetAllAsync(
+            cancellationToken);
+
+        var results = new List<RiskEvaluationResult>();
+
+        foreach (var rule in rules)
+        {
+            if (!string.Equals(
+                    rule.SensorType,
+                    sensorType,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (!EvaluateCondition(
+                    value,
+                    rule.Operator,
+                    rule.ThresholdValue))
+            {
+                continue;
+            }
+
+            if (!Enum.TryParse<RiskLevel>(
+                    rule.RiskLevel,
+                    true,
+                    out var riskLevel))
+            {
+                continue;
+            }
+
+            results.Add(new RiskEvaluationResult
+            {
+                Level = riskLevel,
+                Phenomenon = rule.Phenomenon,
+                Message = rule.Description,
+                AlertRuleId = rule.Id,
+                SensorType = rule.SensorType,
+                Operator = rule.Operator,
+                DetectedValue = value,
+                ThresholdValue = rule.ThresholdValue
+            });
+        }
+
+        if (results.Count == 0)
+        {
+            return CreateNormalResult(
+                "El valor está dentro del rango normal.");
+        }
+
+        return results
+            .OrderByDescending(result => result.Level)
+            .First();
+    }
+
+    private static RiskEvaluationResult CreateNormalResult(
+        string message)
+    {
+        return new RiskEvaluationResult
+        {
+            Level = RiskLevel.Green,
+            Phenomenon = string.Empty,
+            Message = message
+        };
     }
 
     private static bool EvaluateCondition(

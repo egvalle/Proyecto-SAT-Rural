@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using SatRural.Domain.Entities;
 using SatRural.Infrastructure.Persistence;
 
-namespace SatRural.Api.Controllers;
+namespace SatRural.AuthService.Controllers;
 
 [ApiController]
 [Route("api/auth")]
