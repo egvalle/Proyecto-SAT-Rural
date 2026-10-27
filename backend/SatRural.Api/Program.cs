@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using SatRural.Domain.Entities;
@@ -16,6 +17,24 @@ using SatRural.Application.Modules.Audit.Services;
 using SatRural.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var authConnectionString =
+    builder.Configuration.GetConnectionString("AuthDatabase");
+var alertsConnectionString =
+    builder.Configuration.GetConnectionString("AlertsDatabase");
+var mongoConnectionString =
+    builder.Configuration["Mongo:ConnectionString"];
+var mongoDatabaseName =
+    builder.Configuration["Mongo:Database"];
+
+if (string.IsNullOrWhiteSpace(authConnectionString) ||
+    string.IsNullOrWhiteSpace(alertsConnectionString) ||
+    string.IsNullOrWhiteSpace(mongoConnectionString) ||
+    string.IsNullOrWhiteSpace(mongoDatabaseName))
+{
+    throw new InvalidOperationException(
+        "AuthDatabase, AlertsDatabase and Mongo settings must be configured.");
+}
 
 // OpenAPI
 builder.Services.AddOpenApi();
@@ -64,6 +83,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+builder.Services.AddDbContext<AuthDbContext>(options =>
+    options.UseNpgsql(authConnectionString));
+builder.Services.AddDbContext<AlertsDbContext>(options =>
+    options.UseNpgsql(alertsConnectionString));
+builder.Services.AddSingleton<IMongoDatabase>(
+    new MongoClient(mongoConnectionString).GetDatabase(mongoDatabaseName));
 
 // Health Checks
 builder.Services.AddHealthChecks();
@@ -93,7 +118,15 @@ using (var scope = app.Services.CreateScope())
 
     var dbContext = services.GetRequiredService<AppDbContext>();
 
-    dbContext.Database.Migrate();
+    await dbContext.Database.MigrateAsync();
+    await services.GetRequiredService<AuthDbContext>()
+        .Database.MigrateAsync();
+    await services.GetRequiredService<AlertsDbContext>()
+        .Database.EnsureCreatedAsync();
+
+    await LegacyDataMigrator.MigrateAsync(
+        services,
+        app.Logger);
 
     await DbSeeder.SeedAsync(
         services,

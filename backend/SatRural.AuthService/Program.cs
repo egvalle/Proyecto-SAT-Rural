@@ -9,6 +9,7 @@ using SatRural.Infrastructure.Persistence;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddHttpClient();
 
 builder.Services.AddCors(options =>
 {
@@ -58,14 +59,28 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+var authConnectionString =
+    builder.Configuration.GetConnectionString("AuthDatabase");
+
+if (string.IsNullOrWhiteSpace(authConnectionString))
+{
+    throw new InvalidOperationException(
+        "Connection string 'AuthDatabase' must be configured.");
+}
+
+builder.Services.AddDbContext<AuthDbContext>(options =>
+    options.UseNpgsql(authConnectionString));
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddHealthChecks();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 app.UseCors("Frontend");
 app.UseAuthentication();

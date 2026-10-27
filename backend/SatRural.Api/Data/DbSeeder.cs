@@ -11,7 +11,7 @@ public static class DbSeeder
         IServiceProvider services,
         IConfiguration configuration)
     {
-        var dbContext = services.GetRequiredService<AppDbContext>();
+        var dbContext = services.GetRequiredService<AuthDbContext>();
         var passwordHasher = services.GetRequiredService<IPasswordHasher<User>>();
 
         var username = configuration["InitialAdmin:Username"]
@@ -25,7 +25,6 @@ public static class DbSeeder
 
         username = username.Trim().ToLowerInvariant();
 
-        // Verificar si el usuario ya existe
         var existingUser = await dbContext.Users
             .SingleOrDefaultAsync(user => user.Username == username);
 
@@ -34,7 +33,6 @@ public static class DbSeeder
             return;
         }
 
-        // Verificar que exista el rol ADMIN
         var adminRole = await dbContext.Roles
             .SingleOrDefaultAsync(role => role.Id == Rol.AdminId);
 
