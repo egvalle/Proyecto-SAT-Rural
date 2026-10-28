@@ -155,13 +155,13 @@ export class AuthService {
     rememberSession: boolean
   ): LoginResponse {
     const token = response.token ?? response.accessToken;
-    const roleId = response.user?.roleId;
+    const roleId = this.resolveRoleId(response.user);
 
     if (typeof token !== 'string' || token.trim().length === 0) {
       throw new Error('La respuesta de autenticación no contiene un token válido.');
     }
 
-    if (!response.user || !Number.isInteger(roleId)) {
+    if (!response.user || roleId === null) {
       throw new Error('La respuesta de autenticación no contiene un usuario válido.');
     }
 
@@ -178,6 +178,25 @@ export class AuthService {
     this.authenticatedSubject.next(true);
 
     return response;
+  }
+
+  private resolveRoleId(user: LoginResponse['user']): number | null {
+    if (!user) {
+      return null;
+    }
+
+    if (Number.isInteger(user.roleId)) {
+      return user.roleId as number;
+    }
+
+    const role = (user.roleDescription ?? user.role ?? '').trim().toUpperCase();
+    if (role === 'USER' || role === 'USUARIO') {
+      return 2;
+    }
+
+    // External logins such as Google are registered as USER when the backend
+    // does not include a role identifier in its response.
+    return 2;
   }
 
   getRole(): string | null {
