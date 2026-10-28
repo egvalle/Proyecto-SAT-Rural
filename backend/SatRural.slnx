@@ -6,4 +6,5 @@
   <Project Path="SatRural.Domain/SatRural.Domain.csproj" />
   <Project Path="SatRural.Gateway/SatRural.Gateway.csproj" />
   <Project Path="SatRural.Infrastructure/SatRural.Infrastructure.csproj" />
+  <Project Path="SatRural.SensorService/SatRural.SensorService.csproj" />
 </Solution>

@@ -1,4 +1,31 @@
 services:
+  sensor-service:
+    build:
+      context: ./backend
+      dockerfile: SatRural.SensorService/Dockerfile
+
+    container_name: sat-rural-sensor-service
+
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:8080"
+      ConnectionStrings__SensorDatabase: "Server=sqlserver,1433;Database=satrural_sensors;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
+      SensorIngestion__ApiKey: "${SENSOR_DEVICE_API_KEY:?Define SENSOR_DEVICE_API_KEY en .env}"
+      Jwt__Key: "${JWT_KEY:?Define JWT_KEY en .env}"
+      Jwt__Issuer: "SatRural.Api"
+      Jwt__Audience: "SatRural.Client"
+      AlertService__BaseUrl: "http://alert-service:8080/"
+      AlertService__ApiKey: "${ALERT_SERVICE_API_KEY:?Define ALERT_SERVICE_API_KEY en .env}"
+
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      alert-service:
+        condition: service_started
+
+    ports:
+      - "127.0.0.1:8084:8080"
+      
   community-db:
     image: postgres:17-alpine
 
@@ -85,6 +112,7 @@ services:
       ReverseProxy__Clusters__auth-service__Destinations__destination1__Address: "http://auth-service:8080/"
       ReverseProxy__Clusters__community-service__Destinations__destination1__Address: "http://community-service:8080/"
       ReverseProxy__Clusters__report-service__Destinations__destination1__Address: "http://report-service:8000/"
+      ReverseProxy__Clusters__sensor-service__Destinations__destination1__Address: "http://sensor-service:8080/"
       Jwt__Key: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
       Jwt__Issuer: "SatRural.Api"
       Jwt__Audience: "SatRural.Client"
@@ -213,8 +241,52 @@ services:
     
     restart: unless-stopped
 
+  alert-db:
+    image: postgres:17-alpine
+
+    container_name: sat-rural-alert-db
+
+    environment:
+      POSTGRES_DB: satrural_alerts
+      POSTGRES_USER: satrural_alerts
+      POSTGRES_PASSWORD: "${ALERT_DB_PASSWORD:?Define ALERT_DB_PASSWORD en .env}"
+
+    volumes:
+      - alert-data:/var/lib/postgresql/data
+
+    ports:
+      - "127.0.0.1:5433:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U satrural_alerts -d satrural_alerts"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  alert-service:
+    build:
+      context: ./backend/SatRural.AlertService
+      dockerfile: Dockerfile
+
+    container_name: sat-rural-alert-service
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://alert-db:5432/satrural_alerts
+      SPRING_DATASOURCE_USERNAME: satrural_alerts
+      SPRING_DATASOURCE_PASSWORD: "${ALERT_DB_PASSWORD:?Define ALERT_DB_PASSWORD en .env}"
+      ALERT_SERVICE_API_KEY: "${ALERT_SERVICE_API_KEY:?Define ALERT_SERVICE_API_KEY en .env}"
+      SERVER_PORT: "8080"
+
+    depends_on:
+      alert-db:
+        condition: service_healthy
+
+    ports:
+      - "127.0.0.1:8085:8080"
+
 volumes:
   sqlserver-data:
   mongodb-data:
   report-files:
   community-data:
+  alert-data:

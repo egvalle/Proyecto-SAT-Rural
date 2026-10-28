@@ -1,0 +1,28 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: alert-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://alert-db:5432/satrural_alerts}
+    username: ${SPRING_DATASOURCE_USERNAME:satrural_alerts}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+satrural:
+  integration:
+    api-key: ${ALERT_SERVICE_API_KEY}
