@@ -41,6 +41,10 @@ export class Login {
     this.completeSignIn(this.authService.loginWithGoogle(this.rememberSession));
   }
 
+  onGitHubSignIn(): void {
+    this.completeSignIn(this.authService.loginWithGitHub(this.rememberSession));
+  }
+
   private completeSignIn(
     loginRequest: Observable<LoginResponse>,
     fallbackUsername = this.username
@@ -66,7 +70,7 @@ export class Login {
         this.errorMessage = error.error?.message ?? (error.status === 401
           ? 'El username o password no son correctos.'
           : error.code === 'auth/popup-closed-by-user'
-            ? 'Se canceló el inicio de sesión con Google.'
+            ? `Se canceló el inicio de sesión con ${error.provider === 'github.com' ? 'GitHub' : 'Google'}.`
             : 'No fue posible iniciar sesión. Intenta nuevamente.');
       }
     });

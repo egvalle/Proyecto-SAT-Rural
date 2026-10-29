@@ -56,6 +56,7 @@ export interface LoginResponse {
 export class AuthService {
   private readonly loginUrl = `${environment.apiBaseUrl}/api/auth/login`;
   private readonly googleLoginUrl = `${environment.apiBaseUrl}/api/auth/google`;
+  private readonly githubLoginUrl = `${environment.apiBaseUrl}/api/auth/github`;
   private readonly binnacleUrl = `${environment.apiBaseUrl}/api/binnacle`;
   private readonly tokenKey = 'sat-rural-auth-token';
   private readonly roleKey = 'sat-rural-user-role';
@@ -83,6 +84,26 @@ export class AuthService {
             from(user.getIdToken()).pipe(
               switchMap(idToken =>
                 this.http.post<LoginResponse>(this.googleLoginUrl, { idToken })
+              )
+            )
+          )
+        );
+      }),
+      map(response => this.storeLoginResponse(response, rememberSession))
+    );
+  }
+
+  loginWithGitHub(rememberSession = true): Observable<LoginResponse> {
+    return from(import('firebase/auth')).pipe(
+      switchMap(({ GithubAuthProvider, getAuth, signInWithPopup }) => {
+        const provider = new GithubAuthProvider();
+        provider.setCustomParameters({ allow_signup: 'false' });
+
+        return from(signInWithPopup(getAuth(), provider)).pipe(
+          switchMap(({ user }) =>
+            from(user.getIdToken()).pipe(
+              switchMap(idToken =>
+                this.http.post<LoginResponse>(this.githubLoginUrl, { idToken })
               )
             )
           )

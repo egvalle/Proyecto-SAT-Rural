@@ -311,6 +311,67 @@ public class AuthController : ControllerBase
         return Ok(CreateAuthResponse(user, roleDescription));
     }
 
+    [HttpPost("github")]
+    public async Task<ActionResult<AuthResponse>> LoginWithGitHub(
+        GitHubLoginRequest request,
+        CancellationToken cancellationToken)
+    {
+        var firebaseApiKey = _configuration["Firebase:ApiKey"];
+        if (string.IsNullOrWhiteSpace(firebaseApiKey))
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new { message = "El inicio de sesión con GitHub no está configurado." });
+        }
+
+        using var firebaseResponse = await _httpClientFactory
+            .CreateClient()
+            .PostAsJsonAsync(
+                $"https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={firebaseApiKey}",
+                new FirebaseTokenRequest(request.IdToken),
+                cancellationToken);
+
+        if (!firebaseResponse.IsSuccessStatusCode)
+        {
+            return Unauthorized(new
+            {
+                message = "La sesión de GitHub no es válida o ha expirado."
+            });
+        }
+
+        var lookup = await firebaseResponse.Content
+            .ReadFromJsonAsync<FirebaseAccountLookup>(cancellationToken);
+        var account = lookup?.Users?.FirstOrDefault();
+
+        if (account is null ||
+            !account.EmailVerified ||
+            string.IsNullOrWhiteSpace(account.Email) ||
+            account.ProviderUserInfo?.Any(provider => provider.ProviderId == "github.com") != true)
+        {
+            return Unauthorized(new
+            {
+                message = "GitHub no devolvió una cuenta verificada válida."
+            });
+        }
+
+        var username = account.Email.Trim().ToLowerInvariant();
+        var user = await _dbContext.Users
+            .SingleOrDefaultAsync(
+                candidate => candidate.Username == username && candidate.IsActive,
+                cancellationToken);
+
+        if (user is null)
+        {
+            return Unauthorized(new
+            {
+                message = "El correo de GitHub no está asociado a un usuario SAT Rural activo."
+            });
+        }
+
+        var roleDescription = await GetRoleDescriptionAsync(user.RolId);
+        return Ok(CreateAuthResponse(user, roleDescription));
+    }
+
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<UserResponse>> Me()
@@ -414,6 +475,8 @@ public sealed record ChangeAdminUserStatusRequest(bool IsActive);
 public sealed record LoginRequest(string Username, string Password);
 
 public sealed record GoogleLoginRequest(string IdToken);
+
+public sealed record GitHubLoginRequest(string IdToken);
 
 public sealed record FirebaseTokenRequest(string IdToken);
 
