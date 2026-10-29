@@ -4,12 +4,14 @@ import com.satrural.alert_service.api.dto.AlertEvaluationResponse;
 import com.satrural.alert_service.api.dto.EvaluateReadingRequest;
 import com.satrural.alert_service.domain.Alert;
 import com.satrural.alert_service.domain.AlertRule;
+import com.satrural.alert_service.notification.AlertNotificationEvent;
 import com.satrural.alert_service.repository.AlertRepository;
 import com.satrural.alert_service.repository.AlertRuleRepository;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,13 +19,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class AlertEvaluationService {
     private final AlertRuleRepository ruleRepository;
     private final AlertRepository alertRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AlertEvaluationService(
         AlertRuleRepository ruleRepository,
-        AlertRepository alertRepository
+        AlertRepository alertRepository,
+        ApplicationEventPublisher eventPublisher
     ) {
         this.ruleRepository = ruleRepository;
         this.alertRepository = alertRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -133,6 +138,22 @@ public class AlertEvaluationService {
             ? "ACTIVATED"
             : escalated ? "ESCALATED" : "UPDATED";
 
+        boolean notificationRequired = newlyActivated || escalated;
+
+        if (notificationRequired) {
+            eventPublisher.publishEvent(
+                new AlertNotificationEvent(
+                    savedAlert.getId(),
+                    savedAlert.getCommunityId(),
+                    savedAlert.getSensorCode(),
+                    savedAlert.getPhenomenon(),
+                    savedAlert.getRiskLevel(),
+                    request.recordedAt(),
+                    outcome
+                )
+            );
+        }
+
         return new AlertEvaluationResponse(
             outcome,
             true,
@@ -142,7 +163,7 @@ public class AlertEvaluationService {
             savedAlert.getMessage(),
             savedAlert.getDetectedValue(),
             savedAlert.getThresholdValue(),
-            newlyActivated || escalated
+            notificationRequired
         );
     }
 
