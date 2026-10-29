@@ -2,9 +2,9 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
-import { switchMap } from 'rxjs';
+import { Observable } from 'rxjs';
 
-import { AuthService } from '../../../../core/services/auth.service';
+import { AuthService, LoginResponse } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -28,36 +28,51 @@ export class Login {
   }
 
   onSignIn(): void {
-    this.isLoading = true;
-    this.errorMessage = '';
-    let loginSucceeded = false;
-
-    this.authService.login({ username: this.username, password: this.password }, this.rememberSession)
-      .pipe(
-        switchMap(() => {
-          loginSucceeded = true;
-          return this.authService.createBinnacle({
-            description: 'Ingreso a panel',
-            idMovimentType: 1,
-            user: this.username,
-            dateHour: new Date().toISOString()
-          });
-        })
-      )
-      .subscribe({
-        next: () => {
-          this.isLoading = false;
-          this.router.navigate(['/dashboard']);
-        },
-        error: error => {
-          this.isLoading = false;
-          this.errorMessage = loginSucceeded
-            ? error.error?.message ?? 'No fue posible guardar el ingreso en la bitácora.'
-            : error.error?.message ?? (error.status === 401
-              ? 'El username o password no son correctos.'
-              : 'No fue posible iniciar sesión. Intenta nuevamente.');
-        }
-      });
+    this.completeSignIn(
+      this.authService.login(
+        { username: this.username, password: this.password },
+        this.rememberSession
+      ),
+      this.username
+    );
   }
 
+  onGoogleSignIn(): void {
+    this.completeSignIn(this.authService.loginWithGoogle(this.rememberSession));
+  }
+
+  onGitHubSignIn(): void {
+    this.completeSignIn(this.authService.loginWithGitHub(this.rememberSession));
+  }
+
+  private completeSignIn(
+    loginRequest: Observable<LoginResponse>,
+    fallbackUsername = this.username
+  ): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    loginRequest.subscribe({
+      next: response => {
+        this.isLoading = false;
+        void this.router.navigate(['/dashboard'], { replaceUrl: true });
+
+        // The audit entry is secondary: authentication must still open the dashboard.
+        this.authService.createBinnacle({
+          description: 'Ingreso a panel',
+          idMovimentType: 1,
+          user: response.user?.username ?? fallbackUsername,
+          dateHour: new Date().toISOString()
+        }).subscribe({ error: () => undefined });
+      },
+      error: error => {
+        this.isLoading = false;
+        this.errorMessage = error.error?.message ?? (error.status === 401
+          ? 'El username o password no son correctos.'
+          : error.code === 'auth/popup-closed-by-user'
+            ? `Se canceló el inicio de sesión con ${error.provider === 'github.com' ? 'GitHub' : 'Google'}.`
+            : 'No fue posible iniciar sesión. Intenta nuevamente.');
+      }
+    });
+  }
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject, map, tap, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, from, map, switchMap, throwError } from 'rxjs';
 
 import { AdminUser } from '../models/user';
 import { environment } from '../../../environments/environment';
@@ -42,6 +42,7 @@ export interface LoginResponse {
   token?: string;
   accessToken?: string;
   user?: {
+    username?: string;
     roleId?: number;
     roleDescription?: string;
     role?: string;
@@ -54,6 +55,8 @@ export interface LoginResponse {
 })
 export class AuthService {
   private readonly loginUrl = `${environment.apiBaseUrl}/api/auth/login`;
+  private readonly googleLoginUrl = `${environment.apiBaseUrl}/api/auth/google`;
+  private readonly githubLoginUrl = `${environment.apiBaseUrl}/api/auth/github`;
   private readonly binnacleUrl = `${environment.apiBaseUrl}/api/binnacle`;
   private readonly tokenKey = 'sat-rural-auth-token';
   private readonly roleKey = 'sat-rural-user-role';
@@ -66,24 +69,47 @@ export class AuthService {
 
   login(credentials: LoginRequest, rememberSession = true): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.loginUrl, credentials).pipe(
-      tap(response => {
-        const token = response.token ?? response.accessToken;
+      map(response => this.storeLoginResponse(response, rememberSession))
+    );
+  }
 
-        if (token) {
-          const storage = rememberSession ? localStorage : sessionStorage;
-          storage.setItem(this.tokenKey, token);
-          const role = response.user?.roleDescription ?? response.user?.role;
+  loginWithGoogle(rememberSession = true): Observable<LoginResponse> {
+    return from(import('firebase/auth')).pipe(
+      switchMap(({ GoogleAuthProvider, getAuth, signInWithPopup }) => {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
 
-          if (role) {
-            storage.setItem(this.roleKey, role);
-          }
-        
-          if (response.user?.roleId !== undefined) {
-            storage.setItem(this.roleIdKey, String(response.user.roleId));
-          }
-          this.authenticatedSubject.next(true);
-        }
-      })
+        return from(signInWithPopup(getAuth(), provider)).pipe(
+          switchMap(({ user }) =>
+            from(user.getIdToken()).pipe(
+              switchMap(idToken =>
+                this.http.post<LoginResponse>(this.googleLoginUrl, { idToken })
+              )
+            )
+          )
+        );
+      }),
+      map(response => this.storeLoginResponse(response, rememberSession))
+    );
+  }
+
+  loginWithGitHub(rememberSession = true): Observable<LoginResponse> {
+    return from(import('firebase/auth')).pipe(
+      switchMap(({ GithubAuthProvider, getAuth, signInWithPopup }) => {
+        const provider = new GithubAuthProvider();
+        provider.setCustomParameters({ allow_signup: 'false' });
+
+        return from(signInWithPopup(getAuth(), provider)).pipe(
+          switchMap(({ user }) =>
+            from(user.getIdToken()).pipe(
+              switchMap(idToken =>
+                this.http.post<LoginResponse>(this.githubLoginUrl, { idToken })
+              )
+            )
+          )
+        );
+      }),
+      map(response => this.storeLoginResponse(response, rememberSession))
     );
   }
 
@@ -132,13 +158,66 @@ export class AuthService {
   }
 
   logout(): void {
+    this.clearStoredSession();
+    this.authenticatedSubject.next(false);
+  }
+
+  private clearStoredSession(): void {
     localStorage.removeItem(this.tokenKey);
     sessionStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.roleKey);
     sessionStorage.removeItem(this.roleKey);
     localStorage.removeItem(this.roleIdKey);
     sessionStorage.removeItem(this.roleIdKey);
-    this.authenticatedSubject.next(false);
+  }
+
+  private storeLoginResponse(
+    response: LoginResponse,
+    rememberSession: boolean
+  ): LoginResponse {
+    const token = response.token ?? response.accessToken;
+    const roleId = this.resolveRoleId(response.user);
+
+    if (typeof token !== 'string' || token.trim().length === 0) {
+      throw new Error('La respuesta de autenticación no contiene un token válido.');
+    }
+
+    if (!response.user || roleId === null) {
+      throw new Error('La respuesta de autenticación no contiene un usuario válido.');
+    }
+
+    this.clearStoredSession();
+
+    const storage = rememberSession ? localStorage : sessionStorage;
+    storage.setItem(this.tokenKey, token);
+    const role = response.user.roleDescription ?? response.user.role;
+
+    if (role) {
+      storage.setItem(this.roleKey, role);
+    }
+    storage.setItem(this.roleIdKey, String(roleId));
+    this.authenticatedSubject.next(true);
+
+    return response;
+  }
+
+  private resolveRoleId(user: LoginResponse['user']): number | null {
+    if (!user) {
+      return null;
+    }
+
+    if (Number.isInteger(user.roleId)) {
+      return user.roleId as number;
+    }
+
+    const role = (user.roleDescription ?? user.role ?? '').trim().toUpperCase();
+    if (role === 'USER' || role === 'USUARIO') {
+      return 2;
+    }
+
+    // External logins such as Google are registered as USER when the backend
+    // does not include a role identifier in its response.
+    return 2;
   }
 
   getRole(): string | null {

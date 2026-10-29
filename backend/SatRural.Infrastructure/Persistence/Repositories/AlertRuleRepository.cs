@@ -6,9 +6,9 @@ namespace SatRural.Infrastructure.Persistence.Repositories;
 
 public class AlertRuleRepository : IAlertRuleRepository
 {
-    private readonly AppDbContext _dbContext;
+    private readonly AlertsDbContext _dbContext;
 
-    public AlertRuleRepository(AppDbContext dbContext)
+    public AlertRuleRepository(AlertsDbContext dbContext)
     {
         _dbContext = dbContext;
     }

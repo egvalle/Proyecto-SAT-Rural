@@ -10,9 +10,9 @@ namespace SatRural.Api.Controllers;
 [Route("api/[controller]")]
 public class AlertsController : ControllerBase
 {
-    private readonly AppDbContext _dbContext;
+    private readonly AlertsDbContext _dbContext;
 
-    public AlertsController(AppDbContext dbContext)
+    public AlertsController(AlertsDbContext dbContext)
     {
         _dbContext = dbContext;
     }

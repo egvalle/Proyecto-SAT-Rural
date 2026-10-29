@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,18 +17,21 @@ namespace SatRural.AuthService.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _dbContext;
+    private readonly AuthDbContext _dbContext;
     private readonly IPasswordHasher<User> _passwordHasher;
     private readonly IConfiguration _configuration;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     public AuthController(
-        AppDbContext dbContext,
+        AuthDbContext dbContext,
         IPasswordHasher<User> passwordHasher,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IHttpClientFactory httpClientFactory)
     {
         _dbContext = dbContext;
         _passwordHasher = passwordHasher;
         _configuration = configuration;
+        _httpClientFactory = httpClientFactory;
     }
 
     [HttpPost("register")]
@@ -245,6 +250,128 @@ public class AuthController : ControllerBase
         return Ok(CreateAuthResponse(user, roleDescription));
     }
 
+    [HttpPost("google")]
+    public async Task<ActionResult<AuthResponse>> LoginWithGoogle(
+        GoogleLoginRequest request,
+        CancellationToken cancellationToken)
+    {
+        var firebaseApiKey = _configuration["Firebase:ApiKey"];
+        if (string.IsNullOrWhiteSpace(firebaseApiKey))
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new { message = "El inicio de sesión con Google no está configurado." });
+        }
+
+        using var firebaseResponse = await _httpClientFactory
+            .CreateClient()
+            .PostAsJsonAsync(
+                $"https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={firebaseApiKey}",
+                new FirebaseTokenRequest(request.IdToken),
+                cancellationToken);
+
+        if (!firebaseResponse.IsSuccessStatusCode)
+        {
+            return Unauthorized(new
+            {
+                message = "La sesión de Google no es válida o ha expirado."
+            });
+        }
+
+        var lookup = await firebaseResponse.Content
+            .ReadFromJsonAsync<FirebaseAccountLookup>(cancellationToken);
+        var account = lookup?.Users?.FirstOrDefault();
+
+        if (account is null ||
+            !account.EmailVerified ||
+            string.IsNullOrWhiteSpace(account.Email) ||
+            account.ProviderUserInfo?.Any(provider => provider.ProviderId == "google.com") != true)
+        {
+            return Unauthorized(new
+            {
+                message = "Google no devolvió una cuenta verificada válida."
+            });
+        }
+
+        var username = account.Email.Trim().ToLowerInvariant();
+        var user = await _dbContext.Users
+            .SingleOrDefaultAsync(
+                candidate => candidate.Username == username && candidate.IsActive,
+                cancellationToken);
+
+        if (user is null)
+        {
+            return Unauthorized(new
+            {
+                message = "El correo Google no está asociado a un usuario SAT Rural activo."
+            });
+        }
+
+        var roleDescription = await GetRoleDescriptionAsync(user.RolId);
+        return Ok(CreateAuthResponse(user, roleDescription));
+    }
+
+    [HttpPost("github")]
+    public async Task<ActionResult<AuthResponse>> LoginWithGitHub(
+        GitHubLoginRequest request,
+        CancellationToken cancellationToken)
+    {
+        var firebaseApiKey = _configuration["Firebase:ApiKey"];
+        if (string.IsNullOrWhiteSpace(firebaseApiKey))
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new { message = "El inicio de sesión con GitHub no está configurado." });
+        }
+
+        using var firebaseResponse = await _httpClientFactory
+            .CreateClient()
+            .PostAsJsonAsync(
+                $"https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={firebaseApiKey}",
+                new FirebaseTokenRequest(request.IdToken),
+                cancellationToken);
+
+        if (!firebaseResponse.IsSuccessStatusCode)
+        {
+            return Unauthorized(new
+            {
+                message = "La sesión de GitHub no es válida o ha expirado."
+            });
+        }
+
+        var lookup = await firebaseResponse.Content
+            .ReadFromJsonAsync<FirebaseAccountLookup>(cancellationToken);
+        var account = lookup?.Users?.FirstOrDefault();
+
+        if (account is null ||
+            !account.EmailVerified ||
+            string.IsNullOrWhiteSpace(account.Email) ||
+            account.ProviderUserInfo?.Any(provider => provider.ProviderId == "github.com") != true)
+        {
+            return Unauthorized(new
+            {
+                message = "GitHub no devolvió una cuenta verificada válida."
+            });
+        }
+
+        var username = account.Email.Trim().ToLowerInvariant();
+        var user = await _dbContext.Users
+            .SingleOrDefaultAsync(
+                candidate => candidate.Username == username && candidate.IsActive,
+                cancellationToken);
+
+        if (user is null)
+        {
+            return Unauthorized(new
+            {
+                message = "El correo de GitHub no está asociado a un usuario SAT Rural activo."
+            });
+        }
+
+        var roleDescription = await GetRoleDescriptionAsync(user.RolId);
+        return Ok(CreateAuthResponse(user, roleDescription));
+    }
+
     [Authorize]
     [HttpGet("me")]
     public async Task<ActionResult<UserResponse>> Me()
@@ -346,6 +473,23 @@ public sealed record UpdateAdminUserRequest(
 public sealed record ChangeAdminUserStatusRequest(bool IsActive);
 
 public sealed record LoginRequest(string Username, string Password);
+
+public sealed record GoogleLoginRequest(string IdToken);
+
+public sealed record GitHubLoginRequest(string IdToken);
+
+public sealed record FirebaseTokenRequest(string IdToken);
+
+public sealed record FirebaseAccountLookup(
+    [property: JsonPropertyName("users")] FirebaseAccount[]? Users);
+
+public sealed record FirebaseAccount(
+    [property: JsonPropertyName("email")] string? Email,
+    [property: JsonPropertyName("emailVerified")] bool EmailVerified,
+    [property: JsonPropertyName("providerUserInfo")] FirebaseProviderInfo[]? ProviderUserInfo);
+
+public sealed record FirebaseProviderInfo(
+    [property: JsonPropertyName("providerId")] string ProviderId);
 
 public sealed record UserResponse(
     int Id,

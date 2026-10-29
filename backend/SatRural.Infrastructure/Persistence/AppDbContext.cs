@@ -57,6 +57,9 @@ public class AppDbContext : DbContext
             typeof(AppDbContext).Assembly
         );
 
+        modelBuilder.Entity<Event>().Ignore(eventItem => eventItem.Alert);
+        modelBuilder.Entity<Alert>().Ignore(alert => alert.Events);
+
         modelBuilder.Entity<AlertRule>().HasData(
             // Temperatura - calor
             new AlertRule

@@ -12,8 +12,8 @@ using SatRural.Infrastructure.Persistence;
 namespace SatRural.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261024074539_AddBinnacles")]
-    partial class AddBinnacles
+    [Migration("20261027174159_SeparateAlertsFromLegacyEvents")]
+    partial class SeparateAlertsFromLegacyEvents
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -522,8 +522,6 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AlertId");
-
                     b.HasIndex("CommunityId");
 
                     b.ToTable("Events");
@@ -783,17 +781,11 @@ namespace SatRural.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("SatRural.Domain.Entities.Event", b =>
                 {
-                    b.HasOne("SatRural.Domain.Entities.Alert", "Alert")
-                        .WithMany("Events")
-                        .HasForeignKey("AlertId");
-
                     b.HasOne("SatRural.Domain.Entities.Community", "Community")
                         .WithMany("Events")
                         .HasForeignKey("CommunityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Alert");
 
                     b.Navigation("Community");
                 });
@@ -827,11 +819,6 @@ namespace SatRural.Infrastructure.Persistence.Migrations
                         .HasForeignKey("RolId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("SatRural.Domain.Entities.Alert", b =>
-                {
-                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("SatRural.Domain.Entities.Clase", b =>

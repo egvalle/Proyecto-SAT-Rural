@@ -63,6 +63,16 @@
         <button class="submit-button" type="submit" [disabled]="!username.trim() || !password.trim() || isLoading">
           {{ isLoading ? 'Ingresando...' : 'Ingresar al panel' }} <span aria-hidden="true">&#8594;</span>
         </button>
+
+        <button class="google-button" type="button" (click)="onGoogleSignIn()" [disabled]="isLoading">
+          <span class="google-icon" aria-hidden="true">G</span>
+          Ingresar con google
+        </button>
+
+        <!-- <button class="google-button" type="button" (click)="onGitHubSignIn()" [disabled]="isLoading">
+          <span class="google-icon" aria-hidden="true">GH</span>
+          Ingresar con github
+        </button> -->
       </form>
 
       <p class="security-note"><span aria-hidden="true">&#10003;</span> Acceso protegido para tu equipo de trabajo</p>

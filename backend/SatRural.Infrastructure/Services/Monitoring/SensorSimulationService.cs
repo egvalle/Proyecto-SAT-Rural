@@ -73,6 +73,10 @@ public class SensorSimulationService : BackgroundService
             scope.ServiceProvider
                 .GetRequiredService<AppDbContext>();
 
+        var alertsDbContext =
+            scope.ServiceProvider
+                .GetRequiredService<AlertsDbContext>();
+
         var riskEvaluationService =
             scope.ServiceProvider
                 .GetRequiredService<RiskEvaluationService>();
@@ -171,11 +175,12 @@ public class SensorSimulationService : BackgroundService
                 ThresholdValue = risk.ThresholdValue
             };
 
-            dbContext.Alerts.Add(alert);
+            alertsDbContext.Alerts.Add(alert);
+            await alertsDbContext.SaveChangesAsync(cancellationToken);
 
             var eventItem = new Event
             {
-                Alert = alert,
+                AlertId = alert.Id,
                 CommunityId = alert.CommunityId,
                 EventType = risk.Phenomenon,
                 Description = risk.Message,

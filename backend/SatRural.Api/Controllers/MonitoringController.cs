@@ -12,15 +12,18 @@ namespace SatRural.Api.Controllers;
 public class MonitoringController : ControllerBase
 {
     private readonly AppDbContext _dbContext;
+    private readonly AlertsDbContext _alertsDbContext;
     private readonly RiskEvaluationService _riskEvaluationService;
     private readonly SimulationState _simulationState;
 
     public MonitoringController(
         AppDbContext dbContext,
+        AlertsDbContext alertsDbContext,
         RiskEvaluationService riskEvaluationService,
         SimulationState simulationState)
     {
         _dbContext = dbContext;
+        _alertsDbContext = alertsDbContext;
         _riskEvaluationService = riskEvaluationService;
         _simulationState = simulationState;
     }
@@ -298,7 +301,7 @@ public class MonitoringController : ControllerBase
             20
         );
 
-        var alerts = await _dbContext.Alerts
+        var alerts = await _alertsDbContext.Alerts
             .AsNoTracking()
             .OrderByDescending(
                 x => x.CreatedAt
