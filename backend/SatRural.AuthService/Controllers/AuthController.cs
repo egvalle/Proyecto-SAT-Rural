@@ -296,15 +296,40 @@ public class AuthController : ControllerBase
         var username = account.Email.Trim().ToLowerInvariant();
         var user = await _dbContext.Users
             .SingleOrDefaultAsync(
-                candidate => candidate.Username == username && candidate.IsActive,
+                candidate => candidate.Username == username,
                 cancellationToken);
 
         if (user is null)
         {
-            return Unauthorized(new
+            var googleUser = new User
             {
-                message = "El correo Google no está asociado a un usuario SAT Rural activo."
-            });
+                Username = username,
+                FullName = string.IsNullOrWhiteSpace(account.DisplayName)
+                    ? username
+                    : account.DisplayName.Trim(),
+                RolId = Rol.AdminId,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            googleUser.PasswordHash = _passwordHasher.HashPassword(
+                googleUser,
+                Guid.NewGuid().ToString("N"));
+
+            _dbContext.Users.Add(googleUser);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            user = googleUser;
+        }
+        else if (!user.IsActive)
+        {
+            user.IsActive = true;
+            if (string.IsNullOrWhiteSpace(user.FullName) &&
+                !string.IsNullOrWhiteSpace(account.DisplayName))
+            {
+                user.FullName = account.DisplayName.Trim();
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         var roleDescription = await GetRoleDescriptionAsync(user.RolId);
@@ -357,15 +382,40 @@ public class AuthController : ControllerBase
         var username = account.Email.Trim().ToLowerInvariant();
         var user = await _dbContext.Users
             .SingleOrDefaultAsync(
-                candidate => candidate.Username == username && candidate.IsActive,
+                candidate => candidate.Username == username,
                 cancellationToken);
 
         if (user is null)
         {
-            return Unauthorized(new
+            var githubUser = new User
             {
-                message = "El correo de GitHub no está asociado a un usuario SAT Rural activo."
-            });
+                Username = username,
+                FullName = string.IsNullOrWhiteSpace(account.DisplayName)
+                    ? username
+                    : account.DisplayName.Trim(),
+                RolId = Rol.AdminId,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            githubUser.PasswordHash = _passwordHasher.HashPassword(
+                githubUser,
+                Guid.NewGuid().ToString("N"));
+
+            _dbContext.Users.Add(githubUser);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            user = githubUser;
+        }
+        else if (!user.IsActive)
+        {
+            user.IsActive = true;
+            if (string.IsNullOrWhiteSpace(user.FullName) &&
+                !string.IsNullOrWhiteSpace(account.DisplayName))
+            {
+                user.FullName = account.DisplayName.Trim();
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
         var roleDescription = await GetRoleDescriptionAsync(user.RolId);
@@ -486,6 +536,7 @@ public sealed record FirebaseAccountLookup(
 public sealed record FirebaseAccount(
     [property: JsonPropertyName("email")] string? Email,
     [property: JsonPropertyName("emailVerified")] bool EmailVerified,
+    [property: JsonPropertyName("displayName")] string? DisplayName,
     [property: JsonPropertyName("providerUserInfo")] FirebaseProviderInfo[]? ProviderUserInfo);
 
 public sealed record FirebaseProviderInfo(

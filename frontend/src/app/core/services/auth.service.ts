@@ -98,6 +98,8 @@ export class AuthService {
       switchMap(({ GithubAuthProvider, getAuth, signInWithPopup }) => {
         const provider = new GithubAuthProvider();
         provider.setCustomParameters({ allow_signup: 'false' });
+        provider.addScope('read:user');
+        provider.addScope('user:email');
 
         return from(signInWithPopup(getAuth(), provider)).pipe(
           switchMap(({ user }) =>
