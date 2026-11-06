@@ -2,7 +2,6 @@ import { Component, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Router } from '@angular/router';
-import { catchError, of, switchMap } from 'rxjs';
 
 import { AuthService } from '../../../../core/services/auth.service';
 
@@ -43,16 +42,6 @@ export class Login {
     this.isLoading = true;
     this.errorMessage = '';
     this.authService.login({ username: this.username, password: this.password }, this.rememberSession)
-      .pipe(
-        switchMap(() => {
-          return this.authService.createBinnacle({
-            description: 'Ingreso a panel',
-            idMovimentType: 1,
-            user: this.username,
-            dateHour: new Date().toISOString()
-          }).pipe(catchError(() => of(null)));
-        })
-      )
       .subscribe({
         next: () => {
           this.isLoading = false;

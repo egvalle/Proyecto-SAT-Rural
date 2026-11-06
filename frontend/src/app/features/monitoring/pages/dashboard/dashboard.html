@@ -1,3 +1,17 @@
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <h1 class="h4 mb-0">Monitoreo climático</h1>
+  <div>
+    <label for="dashboard-community" class="form-label me-2 mb-0">Comunidad</label>
+    <select id="dashboard-community" class="form-select d-inline-block w-auto"
+      [(ngModel)]="communityId" (ngModelChange)="selectCommunity()">
+      <option [ngValue]="null">Todas las comunidades</option>
+      @for (community of communities; track community.id) {
+        <option [ngValue]="community.id">{{ community.name }}</option>
+      }
+    </select>
+  </div>
+</div>
+
 @if (loading) {
 
   <div class="d-flex justify-content-center py-5">
@@ -23,11 +37,54 @@
         ESTADO GENERAL
         ====================================== -->
     <app-system-status
-      [title]="'Estado general: ' + dashboard.status"
+      [title]="'Estado general: ' + (dashboard.status === 'NO_DATA' ? 'Sin datos' : dashboard.status)"
       [description]="dashboard.statusMessage"
       [updatedAt]="dashboard.updatedAt"
       [status]="dashboard.status">
     </app-system-status>
+
+    @if (summaryError) {
+      <div class="alert alert-warning mb-0" role="alert">No fue posible actualizar los indicadores generales.</div>
+    }
+    @if (summaryLoading) {
+      <p class="text-body-secondary mb-0">Actualizando indicadores generales...</p>
+    }
+    @if (communityId !== null && !summaryLoading && !summaryError && activeSensors === 0) {
+      <div class="alert alert-info mb-0" role="status">
+        Esta comunidad no tiene sensores activos. La simulación global se ejecuta,
+        pero aquí no aparecerán lecturas ni datos en la gráfica hasta que haya un sensor simulado activo.
+      </div>
+    }
+    <section class="row g-3" aria-label="Indicadores generales">
+      <div class="col-6 col-lg-3"><div class="panel p-3 h-100"><div class="text-body-secondary small">Comunidades</div><strong class="fs-3">{{ communityCount }}</strong></div></div>
+      <div class="col-6 col-lg-3"><div class="panel p-3 h-100"><div class="text-body-secondary small">Sensores activos</div><strong class="fs-3">{{ activeSensors }}</strong></div></div>
+      <div class="col-6 col-lg-3"><div class="panel p-3 h-100"><div class="text-body-secondary small">Sensores inactivos</div><strong class="fs-3">{{ inactiveSensors }}</strong></div></div>
+      <div class="col-6 col-lg-3"><div class="panel p-3 h-100"><div class="text-body-secondary small">Alertas activas</div><strong class="fs-3">{{ activeAlerts }}</strong></div></div>
+    </section>
+    <section class="row g-3" aria-label="Estadísticas de alertas y eventos">
+      <div class="col-12 col-lg-6">
+        <div class="panel p-3 h-100">
+          <h2 class="h6">Alertas por nivel</h2>
+          <div class="d-flex flex-wrap gap-3">
+            <span>Amarillo: <strong>{{ alertLevels.YELLOW }}</strong></span>
+            <span>Naranja: <strong>{{ alertLevels.ORANGE }}</strong></span>
+            <span>Rojo: <strong>{{ alertLevels.RED }}</strong></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="panel p-3 h-100">
+          <h2 class="h6">Eventos climáticos: {{ eventCount }}</h2>
+          <div class="d-flex flex-wrap gap-3">
+            @for (event of eventTypes; track event.name) {
+              <span>{{ event.name }}: <strong>{{ event.count }}</strong></span>
+            } @empty {
+              <span class="text-body-secondary">Sin eventos registrados.</span>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- ======================================
         TARJETAS DE SENSORES
@@ -36,11 +93,11 @@
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
         <app-sensor-card
           title="Temperatura"
-          [value]="dashboard.temperature"
+          [value]="dashboard.temperature ?? '—'"
           unit="°C"
           icon="bi bi-thermometer-half"
-          status="Dentro del rango normal"
-          statusClass="normal">
+          [status]="dashboard.temperature === null ? 'Sin lectura' : 'Dentro del rango normal'"
+          [statusClass]="dashboard.temperature === null ? 'missing' : 'normal'">
         </app-sensor-card>
       </div>
 
@@ -48,46 +105,47 @@
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
         <app-sensor-card
           title="Humedad relativa"
-          [value]="realHumidity?.value ?? dashboard.humidity"
+          [value]="dashboard.humidity ?? '—'"
           unit="%"
           icon="bi bi-droplet-fill"
-          [status]="realHumidity ? 'Lectura real · HUM-001' : 'Lectura simulada'"
-          [statusClass]="realHumidity && realHumidity.value >= 80 ? 'emergency' :
-            realHumidity && realHumidity.value >= 70 ? 'alert' :
-            realHumidity && realHumidity.value >= 60 ? 'warning' : 'normal'">
+          [status]="dashboard.humidity === null ? 'Sin lectura' : dashboard.humiditySource === 'REAL' ? 'Lectura real · ' + dashboard.humidityCode : 'Lectura simulada'"
+          [statusClass]="dashboard.humidity === null ? 'missing' :
+            dashboard.humidity >= 80 ? 'emergency' :
+            dashboard.humidity >= 70 ? 'alert' :
+            dashboard.humidity >= 60 ? 'warning' : 'normal'">
         </app-sensor-card>
       </div>
 
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
         <app-sensor-card
           title="Viento"
-          [value]="dashboard.windSpeed"
+          [value]="dashboard.windSpeed ?? '—'"
           unit="km/h"
           icon="bi bi-wind"
-          status="Velocidad moderada"
-          statusClass="normal">
+          [status]="dashboard.windSpeed === null ? 'Sin lectura' : 'Velocidad moderada'"
+          [statusClass]="dashboard.windSpeed === null ? 'missing' : 'normal'">
         </app-sensor-card>
       </div>
 
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
         <app-sensor-card
           title="Lluvia"
-          [value]="dashboard.rainfall"
+          [value]="dashboard.rainfall ?? '—'"
           unit="mm/h"
           icon="bi bi-cloud-rain-heavy"
-          status="Precipitación registrada"
-          statusClass="normal">
+          [status]="dashboard.rainfall === null ? 'Sin lectura' : 'Precipitación registrada'"
+          [statusClass]="dashboard.rainfall === null ? 'missing' : 'normal'">
         </app-sensor-card>
       </div>
 
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
         <app-sensor-card
           title="Nivel del río"
-          [value]="dashboard.riverLevel"
+          [value]="dashboard.riverLevel ?? '—'"
           unit="%"
           icon="bi bi-water"
-          status="Nivel monitoreado"
-          statusClass="normal">
+          [status]="dashboard.riverLevel === null ? 'Sin lectura' : 'Nivel monitoreado'"
+          [statusClass]="dashboard.riverLevel === null ? 'missing' : 'normal'">
         </app-sensor-card>
       </div>
     </section>
@@ -129,7 +187,7 @@
               </p>
             </div>
             <span class="sensor-count">
-              5 activos
+              {{ dashboard.sensorStates.length }} activos
             </span>
           </div>
 
@@ -144,96 +202,22 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>
-                    <strong>TEMP-001</strong>
-                  </td>
-                  <td>Temperatura</td>
-                  <td>
-                    {{ dashboard.temperature }} °C
-                  </td>
-                  <td>
-                    <span class="sensor-badge normal">
-                      <i class="bi bi-circle-fill"></i>
-                      Normal
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>HUM-001</strong>
-                  </td>
-                  <td>Humedad</td>
-                  <td>
-                    {{ realHumidity?.value ?? dashboard.humidity }} %
-                  </td>
-                  <td>
-                    <span class="sensor-badge" [class.normal]="!realHumidity"
-                      [class.warning]="realHumidity">
-                      <i class="bi bi-circle-fill"></i>
-                      {{ realHumidity ? 'Real' : 'Simulado' }}
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>WIND-001</strong>
-                  </td>
-                  <td>Viento</td>
-                  <td>
-                    {{ dashboard.windSpeed }} km/h
-                  </td>
-                  <td>
-                    <span class="sensor-badge normal">
-                      <i class="bi bi-circle-fill"></i>
-                      Normal
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>RAIN-001</strong>
-                  </td>
-                  <td>Pluviómetro</td>
-                  <td>
-                    {{ dashboard.rainfall }} mm/h
-                  </td>
-                  <td>
-                    <span
-                      class="sensor-badge"
-                      [class.warning]="dashboard.rainfall >= 15"
-                      [class.normal]="dashboard.rainfall < 15">
-                      <i class="bi bi-circle-fill"></i>
-                      {{
-                        dashboard.rainfall >= 15
-                          ? 'Precaución'
-                          : 'Normal'
-                      }}
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <strong>RIVER-001</strong>
-                  </td>
-                  <td>Nivel de río</td>
-                  <td>
-                    {{ dashboard.riverLevel }} %
-                  </td>
-                  <td>
-                    <span
-                      class="sensor-badge"
-                      [class.warning]="dashboard.riverLevel >= 60"
-                      [class.normal]="dashboard.riverLevel < 60">
-                      <i class="bi bi-circle-fill"></i>
-                      {{
-                        dashboard.riverLevel >= 60
-                          ? 'Observación'
-                          : 'Normal'
-                      }}
-                    </span>
-                  </td>
-                </tr>
+                @for (sensor of dashboard.sensorStates; track sensor.id) {
+                  <tr>
+                    <td><strong>{{ sensor.code }}</strong><br><small>{{ sensor.name }}</small></td>
+                    <td>{{ sensorTypeLabel(sensor.type) }}</td>
+                    <td>{{ sensor.value ?? '—' }} {{ sensor.value === null ? '' : sensor.unit }}</td>
+                    <td>
+                      <span class="sensor-badge" [class.normal]="sensor.source !== 'REAL'"
+                        [class.warning]="sensor.source === 'REAL'">
+                        <i class="bi bi-circle-fill"></i>
+                        {{ sensor.source === 'REAL' ? 'Real' : sensor.source ? 'Simulado' : 'Sin lectura' }}
+                      </span>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="4" class="text-center">No hay sensores activos en esta comunidad.</td></tr>
+                }
               </tbody>
             </table>
           </div>

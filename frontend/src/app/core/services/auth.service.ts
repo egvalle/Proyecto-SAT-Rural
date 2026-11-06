@@ -23,19 +23,24 @@ export interface UpdateAdminUserRequest {
   password?: string;
 }
 
-export interface CreateBinnacleRequest {
-  description: string;
-  idMovimentType: number;
-  user: string;
-  dateHour: string;
-}
-
 export interface BinnacleEntry {
   id: number;
   description: string;
   idMovimentType: number;
   user: string;
   dateHour: string;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  userId: number;
+  username: string;
+  fullName: string;
+  action: string;
+  entityName: string;
+  entityId: string;
+  details: string;
+  createdAt: string;
 }
 
 export interface LoginResponse {
@@ -100,12 +105,21 @@ export class AuthService {
     this.authenticatedSubject.next(true);
   }
 
-  createBinnacle(request: CreateBinnacleRequest): Observable<unknown> {
-    return this.http.post(this.binnacleUrl, request);
+  endSession(): Observable<void> {
+    return this.http.post<void>(`${environment.apiBaseUrl}/api/auth/logout`, {});
   }
 
   getBinnacle(): Observable<BinnacleEntry[]> {
-    return this.http.get<BinnacleEntry[]>(this.binnacleUrl);
+    return this.http.get<BinnacleEntry[]>(this.binnacleUrl, {
+      params: { limit: '500' }
+    });
+  }
+
+  getAuditLogs(): Observable<AuditLogEntry[]> {
+    return this.http.get<AuditLogEntry[]>(
+      `${environment.apiBaseUrl}/api/audit-logs`,
+      { params: { limit: '500' } }
+    );
   }
 
   register(request: RegisterRequest): Observable<unknown> {

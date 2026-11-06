@@ -5,6 +5,7 @@ import com.satrural.alert_service.domain.Alert;
 import com.satrural.alert_service.domain.ClimateEvent;
 import com.satrural.alert_service.repository.AlertRepository;
 import com.satrural.alert_service.repository.ClimateEventRepository;
+import com.satrural.alert_service.service.AuditLogClient;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -19,6 +20,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,17 +34,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class AlertsController {
     private final AlertRepository alertRepository;
     private final ClimateEventRepository eventRepository;
+    private final AuditLogClient auditLogClient;
 
     public AlertsController(AlertRepository alertRepository,
-                            ClimateEventRepository eventRepository) {
+                            ClimateEventRepository eventRepository,
+                            AuditLogClient auditLogClient) {
         this.alertRepository = alertRepository;
         this.eventRepository = eventRepository;
+        this.auditLogClient = auditLogClient;
     }
 
     @GetMapping
     public List<AlertResponse> getAlerts(
         @RequestParam(required = false) String level,
         @RequestParam(required = false) Boolean isActive,
+        @RequestParam(required = false) String status,
         @RequestParam(required = false) Integer communityId,
         @RequestParam(required = false) Integer sensorId,
         @RequestParam(required = false) String phenomenon,
@@ -59,6 +66,9 @@ public class AlertsController {
         String normalizedLevel = level == null || level.isBlank()
             ? null
             : level.trim().toUpperCase(Locale.ROOT);
+        String normalizedStatus = status == null || status.isBlank()
+            ? null
+            : status.trim().toUpperCase(Locale.ROOT);
 
         Specification<Alert> filters = (root, query, builder) -> builder.conjunction();
         if (normalizedLevel != null)
@@ -67,6 +77,9 @@ public class AlertsController {
         if (isActive != null)
             filters = filters.and((root, query, builder) ->
                 builder.equal(root.get("active"), isActive));
+        if (normalizedStatus != null)
+            filters = filters.and((root, query, builder) ->
+                builder.equal(root.get("status"), normalizedStatus));
         if (communityId != null)
             filters = filters.and((root, query, builder) ->
                 builder.equal(root.get("communityId"), communityId));
@@ -119,6 +132,13 @@ public class AlertsController {
         alert.setHandledByUserId(Integer.parseInt(authentication.getToken().getSubject()));
         alert.setHandledAt(Instant.now());
         alertRepository.save(alert);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                auditLogClient.recordAlert(authentication.getToken(), "ATTEND", id,
+                    "Alerta marcada como atendida.");
+            }
+        });
         return ResponseEntity.ok(Map.of("message", "Alerta marcada como atendida."));
     }
 
@@ -153,6 +173,13 @@ public class AlertsController {
         event.setLevel(alert.getRiskLevel());
         event.setActive(false);
         eventRepository.save(event);
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                auditLogClient.recordAlert(authentication.getToken(), "CLOSE", id,
+                    "Alerta marcada como resuelta.");
+            }
+        });
 
         return ResponseEntity.ok(
             Map.of("message", "Alerta marcada como resuelta."));

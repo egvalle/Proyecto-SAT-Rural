@@ -23,6 +23,7 @@ export class Header {
   }
 
   logout(): void {
+    this.authService.endSession().subscribe({ error: () => {} });
     this.authService.logout();
     this.router.navigate(['/login']);
   }

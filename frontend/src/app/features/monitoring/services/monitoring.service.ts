@@ -9,14 +9,6 @@ import { DashboardData } from '../models/dashboard.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { environment } from '../../../../environments/environment';
 
-export interface LiveHumidityReading {
-  id: number;
-  sensorId: number;
-  value: number;
-  recordedAt: string;
-  source: string;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -30,27 +22,24 @@ export class MonitoringService {
   ) {
   }
 
-  getDashboard(): Observable<DashboardData> {
+  getDashboard(communityId?: number): Observable<DashboardData> {
     return this.http.get<DashboardData>(
-      `${this.apiUrl}/dashboard`
-    );
-  }
-
-  getLiveHumidity(): Observable<LiveHumidityReading[]> {
-    return this.http.get<LiveHumidityReading[]>(
-      `${environment.apiBaseUrl}/api/sensors/2/readings?limit=20`
+      `${this.apiUrl}/dashboard`,
+      { params: communityId === undefined ? {} : { communityId } }
     );
   }
 
   getHistory(
-    limit = 20
+    limit = 20,
+    communityId?: number
   ): Observable<SensorHistory[]> {
 
     return this.http.get<SensorHistory[]>(
       `${this.apiUrl}/history`,
       {
         params: {
-          limit
+          limit,
+          ...(communityId === undefined ? {} : { communityId })
         }
       }
     );
@@ -58,14 +47,16 @@ export class MonitoringService {
 
 
   getRecentAlerts(
-    limit = 5
+    limit = 5,
+    communityId?: number
   ): Observable<RecentAlert[]> {
 
     return this.http.get<RecentAlert[]>(
       `${this.apiUrl}/alerts/recent`,
       {
         params: {
-          limit
+          limit,
+          ...(communityId === undefined ? {} : { communityId })
         }
       }
     );

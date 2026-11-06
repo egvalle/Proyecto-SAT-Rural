@@ -8,4 +8,11 @@ export interface Alert {
  createdAt: string;
  resolvedAt: string | null;
  isActive: boolean;
+ alertRuleId: number | null;
+ detectedValue: number | null;
+ thresholdValue: number | null;
+ status: 'ACTIVE' | 'ATTENDED' | 'CLOSED';
+ handledByUserId: number | null;
+ handledAt: string | null;
+ closedByUserId: number | null;
 }

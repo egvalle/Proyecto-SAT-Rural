@@ -18,5 +18,5 @@ export class SensorCard {
   @Input() status = 'Normal';
 
   @Input() statusClass:
-    'normal' | 'warning' | 'alert' | 'emergency' = 'normal';
+    'normal' | 'warning' | 'alert' | 'emergency' | 'missing' = 'normal';
 }

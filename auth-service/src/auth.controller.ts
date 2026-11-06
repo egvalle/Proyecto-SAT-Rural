@@ -57,13 +57,20 @@ export class AuthController {
   }
 
   @Post('exchange')
-  exchange(@Body() body: { code: string }) {
-    return this.oauth.exchange(body?.code);
+  async exchange(@Body() body: { code: string }) {
+    const result = await this.oauth.exchange(body?.code);
+    const actor = await this.users.get(result.user.id);
+    await this.audit.record(actor, 'LOGIN', actor.id,
+      'Inicio de sesión con proveedor externo.');
+    return result;
   }
 
   @Post('login')
-  login(@Body() body: { username: string; password: string }) {
-    return this.users.login(body?.username, body?.password);
+  async login(@Body() body: { username: string; password: string }) {
+    const result = await this.users.login(body?.username, body?.password);
+    const actor = await this.users.get(result.user.id);
+    await this.audit.record(actor, 'LOGIN', actor.id, 'Inicio de sesión.');
+    return result;
   }
 
   @Post('register')
@@ -80,7 +87,10 @@ export class AuthController {
   @UseGuards(JwtGuard)
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
-  logout() {}
+  async logout(@Req() request: AuthenticatedRequest) {
+    await this.audit.record(request.user, 'LOGOUT', request.user.id,
+      'Cierre de sesión.');
+  }
 
   @UseGuards(JwtGuard, AdminGuard)
   @Get('admin/users')

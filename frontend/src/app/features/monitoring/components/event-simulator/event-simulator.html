@@ -10,13 +10,17 @@
     </h3>
 
     <span>
-      Solo administrador
+      Administrador y operador
     </span>
 
   </div>
 
   @if (canWrite) {
     <div class="p-4">
+
+      <p class="text-body-secondary mb-3">
+        El escenario se aplica a todas las comunidades con sensores simulados activos.
+      </p>
 
       <label
         for="scenario"
@@ -80,6 +84,7 @@
         <button
           type="button"
           class="btn btn-light"
+          [disabled]="running"
           (click)="reset()">
 
           <i class="bi bi-arrow-counterclockwise me-1"></i>

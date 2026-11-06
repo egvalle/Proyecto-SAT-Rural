@@ -1,54 +1,77 @@
-<app-component-card title="Bitacora" desc="Registro de actividades del sistema.">
-    
-    <div class="container-fluid px-0">
-        <!-- ===================================================== -->
-        <!-- LISTADO -->
-        <!-- ===================================================== -->
-
-        <div class="card border-0 shadow-sm">
-            <div class="card-body">
-            
-                <!-- Tabla -->
-
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Id</th>
-                                <th>Descripción</th>
-                                <th>Movimiento</th>
-                                <th>User</th>
-                                <th>Fecha/hora</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (isLoading) {
-                                <tr>
-                                    <td colspan="5" class="text-center">Cargando bitácora...</td>
-                                </tr>
-                            } @else if (errorMessage) {
-                                <tr>
-                                    <td colspan="5" class="text-center text-danger">{{ errorMessage }}</td>
-                                </tr>
-                            } @else if (entries.length === 0) {
-                                <tr>
-                                    <td colspan="5" class="text-center">No hay registros en la bitácora.</td>
-                                </tr>
-                            } @else {
-                                @for (entry of entries; track entry.id) {
-                                    <tr>
-                                        <td>{{ entry.id }}</td>
-                                        <td>{{ entry.description }}</td>
-                                        <td>{{ entry.idMovimentType }}</td>
-                                        <td>{{ entry.user }}</td>
-                                        <td>{{ entry.dateHour | date: 'short' }}</td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+<app-component-card title="Bitácora" desc="Actividades e historial de auditoría del sistema.">
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+          <h2 class="h5 mb-1">Registro de actividades</h2>
+          <p class="text-body-secondary mb-0">Se muestran hasta 500 registros recientes de cada origen.</p>
         </div>
+        <button type="button" class="btn btn-outline-primary" (click)="loadBinnacle()" [disabled]="isLoading">
+          Actualizar
+        </button>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="activity-user" class="form-label">Usuario</label>
+          <input id="activity-user" type="text" class="form-control" [(ngModel)]="userFilter" placeholder="Buscar usuario">
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="activity-action" class="form-label">Acción</label>
+          <input id="activity-action" type="text" class="form-control" [(ngModel)]="actionFilter" placeholder="Buscar acción">
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="activity-entity" class="form-label">Entidad</label>
+          <input id="activity-entity" type="text" class="form-control" [(ngModel)]="entityFilter" placeholder="Buscar entidad">
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="activity-from" class="form-label">Desde</label>
+          <input id="activity-from" type="date" class="form-control" [(ngModel)]="dateFrom">
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="activity-to" class="form-label">Hasta</label>
+          <input id="activity-to" type="date" class="form-control" [(ngModel)]="dateTo">
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2 d-flex align-items-end">
+          <button type="button" class="btn btn-outline-secondary w-100" (click)="clearFilters()">Limpiar filtros</button>
+        </div>
+      </div>
+
+      @if (isLoading) {
+        <p class="text-body-secondary mb-0">Cargando bitácora...</p>
+      } @else if (errorMessage) {
+        <div class="alert alert-danger mb-0" role="alert">{{ errorMessage }}</div>
+      } @else {
+        <p class="small text-body-secondary">{{ filteredEntries.length }} de {{ entries.length }} registros visibles</p>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th>Origen</th>
+                <th>Fecha y hora</th>
+                <th>Usuario</th>
+                <th>Acción</th>
+                <th>Entidad</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entry of filteredEntries; track entry.key) {
+                <tr>
+                  <td><span class="badge text-bg-secondary">{{ entry.source }}</span></td>
+                  <td class="text-nowrap">{{ entry.date | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+                  <td>{{ entry.user }}</td>
+                  <td>{{ entry.action }}</td>
+                  <td>{{ entry.entity ? entry.entity + ' #' + entry.entityId : '—' }}</td>
+                  <td>{{ entry.description }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6" class="text-center text-body-secondary py-4">No hay registros para estos filtros.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     </div>
+  </div>
 </app-component-card>

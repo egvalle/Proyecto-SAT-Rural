@@ -26,6 +26,14 @@ public class AuditLogClient {
     }
 
     public void record(Jwt jwt, String action, long ruleId, String details) {
+        send(jwt, action, "AlertRule", ruleId, details);
+    }
+
+    public void recordAlert(Jwt jwt, String action, long alertId, String details) {
+        send(jwt, action, "Alert", alertId, details);
+    }
+
+    private void send(Jwt jwt, String action, String entityName, long entityId, String details) {
         String username = jwt.getClaimAsString("email");
         if (username == null) username = jwt.getClaimAsString(LEGACY_USERNAME_CLAIM);
         if (username == null) username = "usuario-" + jwt.getSubject();
@@ -38,14 +46,15 @@ public class AuditLogClient {
                     "userId", Integer.parseInt(jwt.getSubject()),
                     "username", username,
                     "action", action,
-                    "entityName", "AlertRule",
-                    "entityId", Long.toString(ruleId),
+                    "entityName", entityName,
+                    "entityId", Long.toString(entityId),
                     "details", details
                 ))
                 .retrieve()
                 .toBodilessEntity();
         } catch (Exception exception) {
-            logger.warn("No se pudo registrar la auditoría de la regla {}.", ruleId, exception);
+            logger.warn("No se pudo registrar la auditoría de {} {}.",
+                entityName, entityId, exception);
         }
     }
 }

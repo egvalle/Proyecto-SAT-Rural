@@ -1,115 +1,153 @@
 <div class="alerts-page">
-
   <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-    <h2 class="mb-0">Alertas</h2>
-
+    <div>
+      <h2 class="mb-1">Alertas</h2>
+      <p class="text-body-secondary mb-0">Consulta y seguimiento de riesgos detectados.</p>
+    </div>
     <div class="d-flex gap-2 flex-wrap">
-      <button
-        class="btn btn-sm"
-        [class.btn-secondary]="levelFilter === null"
-        [class.btn-outline-secondary]="levelFilter !== null"
-        (click)="setLevelFilter(null)">
-        Todas
-      </button>
-      <button
-        class="btn btn-sm"
-        [class.btn-warning]="levelFilter === 'YELLOW'"
-        [class.btn-outline-warning]="levelFilter !== 'YELLOW'"
-        (click)="setLevelFilter('YELLOW')">
-        Amarillo
-      </button>
-      <button
-        class="btn btn-sm"
-        [class.btn-orange]="levelFilter === 'ORANGE'"
-        [class.btn-outline-secondary]="levelFilter !== 'ORANGE'"
-        (click)="setLevelFilter('ORANGE')">
-        Naranja
-      </button>
-      <button
-        class="btn btn-sm"
-        [class.btn-danger]="levelFilter === 'RED'"
-        [class.btn-outline-danger]="levelFilter !== 'RED'"
-        (click)="setLevelFilter('RED')">
-        Rojo
-      </button>
-      <button
-        class="btn btn-sm btn-outline-primary"
-        (click)="toggleActiveOnly()">
-        {{ activeOnly ? 'Mostrando: solo activas' : 'Mostrando: todas' }}
-      </button>
+      <button class="btn btn-sm" [class.btn-secondary]="levelFilter === null"
+        [class.btn-outline-secondary]="levelFilter !== null" (click)="setLevelFilter(null)">Todas</button>
+      <button class="btn btn-sm" [class.btn-warning]="levelFilter === 'YELLOW'"
+        [class.btn-outline-warning]="levelFilter !== 'YELLOW'" (click)="setLevelFilter('YELLOW')">Amarillo</button>
+      <button class="btn btn-sm" [class.btn-orange]="levelFilter === 'ORANGE'"
+        [class.btn-outline-secondary]="levelFilter !== 'ORANGE'" (click)="setLevelFilter('ORANGE')">Naranja</button>
+      <button class="btn btn-sm" [class.btn-danger]="levelFilter === 'RED'"
+        [class.btn-outline-danger]="levelFilter !== 'RED'" (click)="setLevelFilter('RED')">Rojo</button>
     </div>
   </div>
 
+  <form class="card border-0 shadow-sm mb-3" (ngSubmit)="applyFilters()">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="alert-community" class="form-label">Comunidad</label>
+          <input id="alert-community" name="communityId" type="number" min="1" class="form-control"
+            [(ngModel)]="communityId" placeholder="ID">
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="alert-sensor" class="form-label">Sensor</label>
+          <input id="alert-sensor" name="sensorId" type="number" min="1" class="form-control"
+            [(ngModel)]="sensorId" placeholder="ID">
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="alert-phenomenon" class="form-label">Fenómeno</label>
+          <input id="alert-phenomenon" name="phenomenon" type="text" class="form-control"
+            [(ngModel)]="phenomenon" placeholder="Buscar">
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="alert-status" class="form-label">Estado</label>
+          <select id="alert-status" name="status" class="form-select" [(ngModel)]="statusFilter">
+            <option value="">Todos</option>
+            <option value="ACTIVE">Activa</option>
+            <option value="ATTENDED">Atendida</option>
+            <option value="CLOSED">Cerrada</option>
+          </select>
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="alert-from" class="form-label">Desde</label>
+          <input id="alert-from" name="from" type="date" class="form-control" [(ngModel)]="dateFrom">
+        </div>
+        <div class="col-12 col-sm-6 col-lg-2">
+          <label for="alert-to" class="form-label">Hasta</label>
+          <input id="alert-to" name="to" type="date" class="form-control" [(ngModel)]="dateTo">
+        </div>
+      </div>
+      @if (dateFrom && dateTo && dateFrom > dateTo) {
+        <p class="text-danger small mt-2 mb-0">La fecha inicial debe ser anterior a la final.</p>
+      }
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary" [disabled]="loading || !!(dateFrom && dateTo && dateFrom > dateTo)">Buscar</button>
+        <button type="button" class="btn btn-outline-secondary" (click)="clearFilters()" [disabled]="loading">Limpiar</button>
+      </div>
+    </div>
+  </form>
+
+  @if (actionError) {
+    <div class="alert alert-danger" role="alert">{{ actionError }}</div>
+  }
   @if (loading) {
     <div class="d-flex justify-content-center py-5">
       <div class="spinner-border text-success" role="status">
         <span class="visually-hidden">Cargando...</span>
       </div>
     </div>
-  }
-  @else if (error) {
-    <div class="alert alert-danger">
-      No fue posible cargar las alertas.
-    </div>
-  }
-  @else {
+  } @else if (error) {
+    <div class="alert alert-danger" role="alert">No fue posible cargar las alertas.</div>
+  } @else {
     <div class="table-responsive">
       <table class="table align-middle">
         <thead>
           <tr>
             <th>Nivel</th>
-            <th>Tipo</th>
-            <th>Mensaje</th>
+            <th>Fenómeno</th>
+            <th>Comunidad</th>
+            <th>Sensor</th>
+            <th>Valor</th>
             <th>Fecha</th>
             <th>Estado</th>
-            @if (canWrite) {
-              <th></th>
-            }
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           @for (alert of alerts; track alert.id) {
             <tr>
               <td>
-                <span
-                  class="badge"
-                  [class.text-bg-warning]="alert.level === 'YELLOW'"
+                <span class="badge" [class.text-bg-warning]="alert.level === 'YELLOW'"
                   [class.text-bg-danger]="alert.level === 'RED'"
-                  [class.text-bg-secondary]="alert.level === 'ORANGE'">
-                  {{ alert.level }}
-                </span>
+                  [class.text-bg-secondary]="alert.level === 'ORANGE'">{{ alert.level }}</span>
               </td>
               <td>{{ alert.type }}</td>
-              <td>{{ alert.message }}</td>
-              <td>{{ alert.createdAt | date:'dd/MM HH:mm:ss' }}</td>
+              <td>{{ alert.communityId }}</td>
+              <td>{{ alert.sensorId ?? '—' }}</td>
+              <td>{{ alert.detectedValue ?? '—' }}</td>
+              <td class="text-nowrap">{{ alert.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ statusLabel(alert.status) }}</td>
               <td>
-                @if (alert.isActive) {
-                  <span class="badge text-bg-danger">Activa</span>
-                } @else {
-                  <span class="badge text-bg-success">Resuelta</span>
-                }
-              </td>
-                @if (canWrite) {
-                  <td>
-                    @if (alert.isActive) {
-                      <button class="btn btn-sm btn-outline-success" (click)="resolve(alert)">
-                        Resolver
-                      </button>
-                    }
-                  </td>
-                }
-            </tr>
-          }
-          @empty {
-            <tr>
-              <td [attr.colspan]="canWrite ? 6 : 5" class="text-center text-secondary py-4">
-                No hay alertas para este filtro.
+                <div class="d-flex gap-2">
+                  <button type="button" class="btn btn-sm btn-outline-primary" (click)="showDetails(alert)">
+                    {{ expandedAlert?.id === alert.id ? 'Ocultar' : 'Detalle' }}
+                  </button>
+                  @if (canWrite && alert.status === 'ACTIVE') {
+                    <button type="button" class="btn btn-sm btn-outline-warning" (click)="attend(alert)">Atender</button>
+                  }
+                  @if (canWrite && alert.isActive) {
+                    <button type="button" class="btn btn-sm btn-outline-success" (click)="resolve(alert)">Resolver</button>
+                  }
+                </div>
               </td>
             </tr>
+            @if (expandedAlert?.id === alert.id) {
+              <tr>
+                <td colspan="8" class="bg-body-tertiary">
+                  <div class="row g-2 p-2 small">
+                    <div class="col-12"><strong>Mensaje:</strong> {{ expandedAlert?.message }}</div>
+                    <div class="col-12 col-md-4"><strong>Regla:</strong> {{ expandedAlert?.alertRuleId ?? 'Sin regla' }}</div>
+                    <div class="col-12 col-md-4"><strong>Valor detectado:</strong> {{ expandedAlert?.detectedValue ?? '—' }}</div>
+                    <div class="col-12 col-md-4"><strong>Umbral:</strong> {{ expandedAlert?.thresholdValue ?? '—' }}</div>
+                    <div class="col-12 col-md-4"><strong>Atendida por usuario:</strong> {{ expandedAlert?.handledByUserId ?? '—' }}</div>
+                    <div class="col-12 col-md-4"><strong>Atendida:</strong> {{ (expandedAlert?.handledAt | date:'dd/MM/yyyy HH:mm') || '—' }}</div>
+                    <div class="col-12 col-md-4"><strong>Cerrada por usuario:</strong> {{ expandedAlert?.closedByUserId ?? '—' }}</div>
+                    <div class="col-12 col-md-4"><strong>Resuelta:</strong> {{ (expandedAlert?.resolvedAt | date:'dd/MM/yyyy HH:mm') || '—' }}</div>
+                  </div>
+                </td>
+              </tr>
+            }
+          } @empty {
+            <tr><td colspan="8" class="text-center text-secondary py-4">No hay alertas para este filtro.</td></tr>
           }
         </tbody>
       </table>
     </div>
+    @if (loadingDetails) {
+      <p class="text-body-secondary">Cargando detalle...</p>
+    }
+    @if (detailsError) {
+      <p class="text-danger" role="alert">No fue posible cargar el detalle de la alerta.</p>
+    }
+    <div class="d-flex justify-content-between align-items-center">
+      <button type="button" class="btn btn-outline-secondary" [disabled]="page === 1" (click)="changePage(page - 1)">Anterior</button>
+      <span>Página {{ page }}</span>
+      <button type="button" class="btn btn-outline-secondary" [disabled]="!hasMore" (click)="changePage(page + 1)">Siguiente</button>
+    </div>
   }
-
 </div>
