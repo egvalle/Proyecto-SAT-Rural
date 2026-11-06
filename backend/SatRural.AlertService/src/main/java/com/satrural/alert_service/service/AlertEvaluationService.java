@@ -4,9 +4,11 @@ import com.satrural.alert_service.api.dto.AlertEvaluationResponse;
 import com.satrural.alert_service.api.dto.EvaluateReadingRequest;
 import com.satrural.alert_service.domain.Alert;
 import com.satrural.alert_service.domain.AlertRule;
+import com.satrural.alert_service.domain.ClimateEvent;
 import com.satrural.alert_service.notification.AlertNotificationEvent;
 import com.satrural.alert_service.repository.AlertRepository;
 import com.satrural.alert_service.repository.AlertRuleRepository;
+import com.satrural.alert_service.repository.ClimateEventRepository;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
@@ -19,15 +21,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class AlertEvaluationService {
     private final AlertRuleRepository ruleRepository;
     private final AlertRepository alertRepository;
+    private final ClimateEventRepository eventRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public AlertEvaluationService(
         AlertRuleRepository ruleRepository,
         AlertRepository alertRepository,
+        ClimateEventRepository eventRepository,
         ApplicationEventPublisher eventPublisher
     ) {
         this.ruleRepository = ruleRepository;
         this.alertRepository = alertRepository;
+        this.eventRepository = eventRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -65,9 +70,11 @@ public class AlertEvaluationService {
             activeAlerts.forEach(alert -> {
                 alert.setActive(false);
                 alert.setResolvedAt(request.recordedAt());
+                alert.setStatus("CLOSED");
             });
 
             alertRepository.saveAll(activeAlerts);
+            activeAlerts.forEach(alert -> recordEvent(alert, request.recordedAt()));
 
             Alert resolvedAlert = activeAlerts.get(0);
 
@@ -98,6 +105,7 @@ public class AlertEvaluationService {
         alertsToResolve.forEach(alert -> {
             alert.setActive(false);
             alert.setResolvedAt(request.recordedAt());
+            alert.setStatus("CLOSED");
         });
 
         if (currentAlert == null) {
@@ -125,14 +133,20 @@ public class AlertEvaluationService {
         currentAlert.setActive(true);
         currentAlert.setResolvedAt(null);
 
+        boolean escalated = !newlyActivated
+            && severity(matchedRule.getRiskLevel()) > previousSeverity;
+        if (newlyActivated || escalated) {
+            currentAlert.setStatus("ACTIVE");
+            currentAlert.setHandledByUserId(null);
+            currentAlert.setHandledAt(null);
+        }
+
         if (!alertsToResolve.isEmpty()) {
             alertRepository.saveAll(alertsToResolve);
+            alertsToResolve.forEach(alert -> recordEvent(alert, request.recordedAt()));
         }
 
         Alert savedAlert = alertRepository.save(currentAlert);
-
-        boolean escalated = !newlyActivated
-            && severity(matchedRule.getRiskLevel()) > previousSeverity;
 
         String outcome = newlyActivated
             ? "ACTIVATED"
@@ -141,6 +155,7 @@ public class AlertEvaluationService {
         boolean notificationRequired = newlyActivated || escalated;
 
         if (notificationRequired) {
+            recordEvent(savedAlert, request.recordedAt());
             eventPublisher.publishEvent(
                 new AlertNotificationEvent(
                     savedAlert.getId(),
@@ -165,6 +180,19 @@ public class AlertEvaluationService {
             savedAlert.getThresholdValue(),
             notificationRequired
         );
+    }
+
+    private void recordEvent(Alert alert, java.time.Instant occurredAt) {
+        ClimateEvent event = new ClimateEvent();
+        event.setAlertId(alert.getId());
+        event.setCommunityId(alert.getCommunityId());
+        event.setEventType(alert.getPhenomenon());
+        event.setDescription(alert.getMessage());
+        event.setOccurredAt(occurredAt);
+        event.setSensorId(alert.getSensorId());
+        event.setLevel(alert.getRiskLevel());
+        event.setActive(alert.isActive());
+        eventRepository.save(event);
     }
 
     private static boolean matches(BigDecimal value, AlertRule rule) {

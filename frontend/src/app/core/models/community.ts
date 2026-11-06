@@ -8,7 +8,7 @@ export interface Community {
   longitude: number | null;
   description: string | null;
   isActive: boolean;
-  sensorCount: number;
+  sensorCount: number | null;
   createdAt: string;
 }
 

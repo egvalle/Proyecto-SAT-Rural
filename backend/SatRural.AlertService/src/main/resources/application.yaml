@@ -37,5 +37,14 @@ management:
 satrural:
   integration:
     api-key: ${ALERT_SERVICE_API_KEY}
+  security:
+    jwt-key: ${JWT_KEY}
+    issuer: ${JWT_ISSUER:SatRural.Api}
+    audience: ${JWT_AUDIENCE:SatRural.Client}
+  audit:
+    base-url: ${AUDIT_SERVICE_BASE_URL:http://audit-service:8000}
+    api-key: ${AUDIT_SERVICE_API_KEY}
+  community:
+    base-url: ${COMMUNITY_SERVICE_BASE_URL:http://community-service:8080}
   notifications:
     recipients: ${ALERT_NOTIFICATIONS_RECIPIENTS:}

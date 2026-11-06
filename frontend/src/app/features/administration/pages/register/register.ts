@@ -61,7 +61,7 @@ export class Register {
       username: this.username.trim().toLowerCase(),
       password: this.password,
       fullName: this.fullName.trim(),
-      roleId: 2
+      roleId: 3
     }).subscribe({
       next: () => {
         this.isLoading = false;

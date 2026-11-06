@@ -1,124 +1,102 @@
 # SAT-Rural
 
-Sistema de monitoreo y alerta temprana para comunidades rurales. Esta versión ejecuta sus servicios en contenedores Docker y conserva una arquitectura distribuida por servicios.
+Sistema de monitoreo y alerta temprana para comunidades rurales. El entorno local se ejecuta con Docker Compose y expone las API mediante un Gateway en `http://localhost:8081`.
 
-## Tecnologías
+## Servicios
 
-- Frontend: Angular 20 servido por Nginx.
-- Gateway: ASP.NET Core 10 y YARP.
-- API de monitoreo: ASP.NET Core 10, Entity Framework Core, SQL Server y SignalR.
-- Autenticación: ASP.NET Core 10, JWT y SQL Server.
-- Comunidades: ASP.NET Core 10, Entity Framework Core y PostgreSQL.
-- Reportes: FastAPI, MongoDB, Jinja2 y WeasyPrint; exporta PDF y registra historial.
-- Docker Compose administra servicios y volúmenes persistentes.
+| Servicio | Tecnología | Responsabilidad |
+| --- | --- | --- |
+| Frontend | Angular 22, Tailwind CSS y Nginx | Panel, simulación y reportes |
+| Gateway | ASP.NET Core 10 y YARP | Entrada única, JWT y rutas |
+| AuthService | NestJS y PostgreSQL | Usuarios, roles, JWT y acceso OAuth |
+| CommunityService | ASP.NET Core 10 y PostgreSQL | Comunidades |
+| SensorService | ASP.NET Core 10 y SQL Server | Sensores, lecturas y dashboard |
+| AlertService | Spring Boot 4 y PostgreSQL | Reglas, alertas, eventos y avisos Gmail |
+| AuditService | FastAPI y MongoDB | Bitácora y auditoría |
+| ReportService | FastAPI y MongoDB | PDF e historial de reportes |
 
-La migración es gradual: monitoreo, alertas, reglas, lecturas, sensores, eventos y bitácora continúan en la API existente. Autenticación, reportes y comunidades ya cuentan con servicios separados.
+Los proyectos de la API y autenticación anteriores ya no forman parte del sistema. La base histórica `SatRuralDb` y los scripts de migración se conservan para consultar o verificar los datos antiguos.
 
-## Requisitos
+## Ejecutar en localhost
 
-- Docker Desktop con Docker Compose.
-- Para desarrollo fuera de Docker: .NET SDK 10, Node.js compatible con Angular 20 y npm.
-- MongoDB Compass es opcional para explorar los reportes.
-
-## Configurar y ejecutar con Docker
-
-Desde la raíz del repositorio, copia `.env.example` como `.env`. Completa las variables requeridas por `docker-compose.yml`; nunca publiques `.env`:
+Necesitas Docker Desktop con Docker Compose. Desde la raíz del proyecto, copia `.env.example` a `.env` y completa los valores vacíos. `JWT_KEY` debe tener al menos 32 caracteres. Las claves de dispositivo, AlertService y AuditService deben ser valores diferentes y privados. No publiques `.env`.
 
 ```powershell
 Copy-Item .env.example .env
-```
-
-Configura como mínimo `MSSQL_SA_PASSWORD`, `MSSQL_DATABASE`, `JWT_KEY`, `COMMUNITY_DB_USER`, `COMMUNITY_DB_PASSWORD`, `MONGO_ROOT_USERNAME` y `MONGO_ROOT_PASSWORD`. Usa una clave JWT de al menos 32 caracteres y el mismo valor para los servicios que validan o emiten tokens. El archivo `.env.example` puede no incluir todavía todas las variables nuevas; verifica `docker-compose.yml` y agrégalas a `.env`.
-
-Valida la configuración y construye/inicia el conjunto:
-
-```powershell
 docker compose config -q
 docker compose up -d --build
 docker compose ps
 ```
 
-La primera compilación puede tardar varios minutos. Abre el frontend en <http://localhost:4200>.
+La primera construcción puede tardar varios minutos. Abre `http://localhost:4200`. Los servicios Spring Boot y las bases pueden necesitar unos segundos adicionales antes de responder.
 
-Para reconstruir solo el frontend tras cambios:
+Para revisar un servicio usa `docker compose logs --tail=80 gateway` y cambia `gateway` por su nombre. Para detener el sistema sin borrar datos usa `docker compose down`. No uses `docker compose down -v` si deseas conservar las bases y los PDF.
+
+## Direcciones locales
+
+| Servicio | Dirección |
+| --- | --- |
+| Frontend | `http://localhost:4200` |
+| Gateway | `http://localhost:8081` |
+| AuthService | `http://localhost:8086` |
+| CommunityService | `http://localhost:8083` |
+| SensorService | `http://localhost:8084` |
+| AlertService | `http://localhost:8085` |
+| AuditService | `http://localhost:8001` |
+| ReportService | `http://localhost:8000` |
+| SQL Server | `localhost:1433` |
+| PostgreSQL de alertas | `localhost:5433` |
+| PostgreSQL de usuarios | `localhost:5434` |
+| MongoDB | `localhost:27017` |
+
+PostgreSQL de comunidades solo está disponible en la red de Compose. El frontend usa el Gateway para acceder a los servicios.
+
+## Comprobar el arranque
 
 ```powershell
-docker compose up -d --build --force-recreate frontend
+Invoke-RestMethod http://localhost:8081/health
+Invoke-RestMethod http://localhost:8081/api/reports/health
+Invoke-RestMethod http://localhost:8084/health
+Invoke-RestMethod http://localhost:8085/actuator/health
 ```
 
-Para ver los registros de un servicio: `docker compose logs -f gateway` (sustituye `gateway` por `api`, `auth-service`, `community-service` o `report-service`). Para detener los contenedores conservando datos: `docker compose down`. `docker compose down -v` elimina también los volúmenes y los datos persistidos.
+`/api/auth/login` y `/api/auth/me` gestionan el acceso. Los datos del panel salen de `/api/monitoring/dashboard`, `/api/sensors`, `/api/sensor-readings` y `/api/alerts`. Las rutas de datos requieren JWT. El ingreso de lecturas de humedad por `POST /api/sensors/readings` exige `X-Device-Key` y está preparado para el ESP32 con DHT11; la conexión física se realizará después. Los demás sensores se simulan cada cinco segundos.
 
-## Servicios y direcciones locales
+El sistema permite consultar reportes de comunidades, sensores, lecturas, alertas, eventos, estado de sensores, estadísticas climáticas y resumen ejecutivo. El reporte de lecturas requiere un rango de fechas. Los tres roles `ADMIN`, `OPERATOR` y `VIEWER` pueden descargar PDF.
 
-| Servicio | Dirección desde el equipo | Uso |
-|---|---|---|
-| Frontend | <http://localhost:4200> | Aplicación Angular |
-| Gateway | <http://localhost:8081> | Entrada recomendada para las API |
-| API de monitoreo | <http://localhost:8080> | API existente |
-| AuthService | <http://localhost:8082> | Autenticación y usuarios |
-| CommunityService | <http://localhost:8083> | Servicio de comunidades |
-| ReportService | <http://localhost:8000> | API FastAPI directa |
-| SQL Server | `localhost:1433` | Datos de monitoreo y autenticación |
-| MongoDB | `localhost:27017` | Historial/metadatos de reportes |
+## Cuenta existente de demostración
 
-PostgreSQL de comunidades no publica un puerto al equipo anfitrión; los servicios se conectan por la red interna de Compose. Usa el Gateway en `8081` para las llamadas de la aplicación. El cliente Angular tiene configurado `http://localhost:8081` como URL base.
+En la base migrada del proyecto existe `adminangi@gmail.com` con rol `ADMIN`. Usa la contraseña habitual de esa cuenta. La migración conserva el hash de contraseña, así que reconstruir contenedores no la restablece. En una base nueva, el registro público crea usuarios `VIEWER`; la cuenta administradora existente debe migrarse antes de usarla.
 
-## Rutas principales
+## Migrar una instalación anterior
 
-- `POST /api/auth/login` y `GET /api/auth/me`: autenticación y perfil, vía Gateway.
-- `GET /api/alerts`, `/api/sensors`, `/api/sensor-readings`, `/api/alert-rules`, `/api/events` y `/api/binnacle`: API de monitoreo, vía Gateway; normalmente requieren JWT.
-- `GET /api/reports/health`: salud de reportes, sin autenticación.
-- `POST /api/reports/alerts`: genera un PDF de alertas. Ejemplo de cuerpo: `{"level":"RED","is_active":true}`. Envía `Authorization: Bearer <token>`.
-- `GET /api/reports/history?limit=10`: historial de reportes del usuario autenticado.
-- `GET /api/reports/{report_id}/download`: descarga un reporte guardado.
-- `GET /community-service/api/communities?page=1&pageSize=10`: integración de CommunityService a través del Gateway, protegida por JWT.
+Estos comandos son para una instalación que ya tiene datos en la API anterior. Conservan usuarios, comunidades, sensores, reglas, alertas, eventos y auditoría. La migración de sensores conserva las lecturas nuevas y descarta las lecturas simuladas copiadas desde la base antigua. Ejecuta los pasos desde la raíz y revisa los conteos antes de activar el nuevo Gateway:
 
-La ruta `/api/communities` existente todavía puede atenderse desde la API de monitoreo. La ruta prefijada `/community-service` es la que dirige al nuevo CommunityService durante la integración.
-
-Health checks útiles:
-
-- <http://localhost:8000/health> o <http://localhost:8081/api/reports/health> para reportes.
-- <http://localhost:8082/health> para AuthService.
-- <http://localhost:8083/health> para CommunityService.
-
-## Usuario de demostración
-
-En una base recién inicializada, el usuario sembrado para demostración es:
-
-- Usuario: `adminangi@gmail.com`
-- Contraseña inicial: `adminangi123*`
-- Rol: `ADMIN`
-
-La base conserva las cuentas existentes. Si la contraseña fue cambiada previamente, utiliza la contraseña actual; volver a iniciar los contenedores no la restablece. Cambia la contraseña de demostración antes de desplegar el sistema en un entorno accesible públicamente. También existen los roles `USER` y `USERCONSULTA`.
-
-## Ver reportes en MongoDB Compass
-
-Conecta Compass usando la URI siguiente y sustituye los valores por los de tu `.env`:
-
-```text
-mongodb://<MONGO_ROOT_USERNAME>:<MONGO_ROOT_PASSWORD>@localhost:27017/?authSource=admin
+```powershell
+docker stop sat-rural-api sat-rural-auth-service
+docker compose run --rm --build auth-migrate
+docker compose run --rm sensor-migrate
+docker compose run --rm data-migrate
+docker compose run --rm audit-migrate
+docker compose run --rm verify-migration
+docker compose up -d --build
 ```
 
-La base usada por el servicio es `satrural_reports` y la colección de historial es `reports`. Si la contraseña contiene caracteres especiales, codifícala para URI.
+No ejecutes la migración contra bases de otro proyecto. Las bases y los archivos de reportes están guardados en volúmenes de Docker.
 
-## Desarrollo local
+## Correo y acceso externo
 
-Para compilar la solución .NET:
+Para avisos de alertas, define en `.env` `GMAIL_USERNAME`, `GMAIL_APP_PASSWORD` y `ALERT_NOTIFICATIONS_RECIPIENTS`. El correo se envía al activarse o escalar una alerta YELLOW, ORANGE o RED. No se reenvía por cada lectura que mantiene el mismo nivel.
+
+Google y GitHub necesitan sus Client ID y Client Secret en `.env`. Sin esas credenciales, el inicio de sesión con contraseña sigue disponible. No incluyas credenciales reales en capturas, documentación ni control de versiones.
+
+## Desarrollo
 
 ```powershell
 dotnet build .\backend\SatRural.slnx
-```
-
-Para trabajar con Angular localmente:
-
-```powershell
 Set-Location .\frontend
 npm ci
 npm start
 ```
 
-Con el frontend local, confirma que Gateway y servicios dependientes estén activos. Para ejecutar el conjunto completo y obtener las direcciones configuradas, usa Docker Compose.
-
-## Persistencia y seguridad
-
-SQL Server, PostgreSQL, MongoDB y archivos de reportes usan volúmenes de Docker Compose. Detener o recrear contenedores no elimina esos datos; `docker compose down -v` sí los elimina. No agregues `.env`, tokens JWT ni contraseñas reales al repositorio. Configura secretos nuevos y credenciales seguras para cualquier despliegue.
+AlertService se compila con `mvnw.cmd package` desde `backend/SatRural.AlertService`. La ejecución completa y las bases se gestionan con Docker Compose.

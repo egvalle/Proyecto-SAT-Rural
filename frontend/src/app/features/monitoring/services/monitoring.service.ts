@@ -1,33 +1,28 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, Subject } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { SensorHistory } from '../models/monitoring-history.model';
 import { RecentAlert } from '../models/recent-alert.model';
 
-import {
-  HubConnection,
-  HubConnectionBuilder,
-  LogLevel
-} from '@microsoft/signalr';
-
 import { DashboardData } from '../models/dashboard.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
+
+export interface LiveHumidityReading {
+  id: number;
+  sensorId: number;
+  value: number;
+  recordedAt: string;
+  source: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class MonitoringService {
 
-  private readonly apiUrl = '/api/monitoring';
-
-  private hubConnection?: HubConnection;
-
-  private readonly readingsUpdatedSubject =
-    new Subject<void>();
-
-  readonly readingsUpdated$ =
-    this.readingsUpdatedSubject.asObservable();
+  private readonly apiUrl = `${environment.apiBaseUrl}/api/monitoring`;
 
   constructor(
     private http: HttpClient,
@@ -41,44 +36,10 @@ export class MonitoringService {
     );
   }
 
-  async startRealtimeConnection(): Promise<void> {
-
-    console.log('Intentando conectar SignalR...');
-
-    if (this.hubConnection) {
-      console.log('SignalR ya estaba inicializado.');
-      return;
-    }
-
-    this.hubConnection =
-      new HubConnectionBuilder()
-        .withUrl('/hubs/monitoring')
-        .withAutomaticReconnect()
-        .configureLogging(LogLevel.Information)
-        .build();
-
-    this.hubConnection.on(
-      'SensorReadingsUpdated',
-      () => {
-        console.log('Nueva lectura recibida por SignalR.');
-
-        this.readingsUpdatedSubject.next();
-      }
+  getLiveHumidity(): Observable<LiveHumidityReading[]> {
+    return this.http.get<LiveHumidityReading[]>(
+      `${environment.apiBaseUrl}/api/sensors/2/readings?limit=20`
     );
-
-    try {
-      await this.hubConnection.start();
-
-      console.log('SignalR conectado correctamente.');
-    }
-    catch (error) {
-      console.error(
-        'Error al conectar con SignalR:',
-        error
-      );
-
-      this.hubConnection = undefined;
-    }
   }
 
   getHistory(

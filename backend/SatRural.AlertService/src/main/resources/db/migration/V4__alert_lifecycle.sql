@@ -1,0 +1,11 @@
+ALTER TABLE alerts ADD COLUMN status VARCHAR(12);
+ALTER TABLE alerts ADD COLUMN handled_by_user_id INTEGER;
+ALTER TABLE alerts ADD COLUMN handled_at TIMESTAMPTZ;
+ALTER TABLE alerts ADD COLUMN closed_by_user_id INTEGER;
+
+UPDATE alerts
+SET status = CASE WHEN is_active THEN 'ACTIVE' ELSE 'CLOSED' END;
+
+ALTER TABLE alerts ALTER COLUMN status SET NOT NULL;
+ALTER TABLE alerts ADD CONSTRAINT ck_alerts_status
+    CHECK (status IN ('ACTIVE', 'ATTENDED', 'CLOSED'));

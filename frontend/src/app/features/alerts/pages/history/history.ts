@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -48,7 +48,8 @@ export class History implements OnInit {
   ];
 
   constructor(
-    private eventsService: EventsService
+    private eventsService: EventsService,
+    private readonly changeDetector: ChangeDetectorRef
   ) {
   }
 
@@ -89,11 +90,13 @@ export class History implements OnInit {
         next: (events) => {
           this.events = events;
           this.loading = false;
+          this.changeDetector.detectChanges();
         },
         error: () => {
           this.events = [];
           this.loading = false;
           this.error = true;
+          this.changeDetector.detectChanges();
         }
       });
   }

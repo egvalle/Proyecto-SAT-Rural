@@ -27,6 +27,8 @@ public class Sensor
     // lecturas en un sensor que ya recibe datos del ESP32.
     public string Source { get; set; } = "SIMULATED";
 
+    public decimal? ManualSimulationValue { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<SensorReading> Readings { get; set; } =

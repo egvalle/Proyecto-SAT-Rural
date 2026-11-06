@@ -43,7 +43,7 @@
             </p>
 
             <h2 class="mb-0">
-              {{ totalSensorsOnPage }}
+              {{ totalSensorsOnPage ?? '—' }}
             </h2>
           </div>
         </div>
@@ -376,9 +376,9 @@
               Limpiar filtros
             </button>
             <button type="button" class="btn btn-sm btn-outline-secondary" (click)="downloadComunitiesPdf()"
-              [disabled]="isLoading || isGeneratingPdf || communities.length === 0">
+              >
               <i class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>
-              {{ isGeneratingPdf ? 'Generando PDF...' : 'Descargar PDF' }}
+              Ver reportes PDF
             </button>
           </div>
 
@@ -387,12 +387,6 @@
         @if (listError) {
           <div class="alert alert-danger">
             {{ listError }}
-          </div>
-        }
-
-        @if (pdfExportError) {
-          <div class="alert alert-danger">
-            {{ pdfExportError }}
           </div>
         }
 
@@ -462,7 +456,7 @@
 
                   <td class="text-center">
                     <span class="badge text-bg-info">
-                      {{ community.sensorCount }}
+                      {{ community.sensorCount ?? '—' }}
                     </span>
                   </td>
 

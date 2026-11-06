@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SatRural.SensorService.Persistence;
+using SatRural.SensorService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,8 +87,28 @@ builder.Services.AddHttpClient("AlertService", client =>
     client.Timeout = TimeSpan.FromSeconds(3);
 });
 
+builder.Services.AddHttpClient("CommunityService", client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["CommunityService:BaseUrl"]
+        ?? "http://community-service:8080/");
+    client.Timeout = TimeSpan.FromSeconds(3);
+});
+
+builder.Services.AddHttpClient("AuditService", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["AuditService:BaseUrl"]
+        ?? "http://audit-service:8000/");
+    client.Timeout = TimeSpan.FromSeconds(3);
+});
+builder.Services.AddScoped<AuditLogClient>();
+
 builder.Services.AddControllers();
 builder.Services.AddHealthChecks();
+if (builder.Configuration.GetValue<bool>("Simulation:Enabled"))
+{
+    builder.Services.AddHostedService<SensorSimulationService>();
+}
 
 var app = builder.Build();
 

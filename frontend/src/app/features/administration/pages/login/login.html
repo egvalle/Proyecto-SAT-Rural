@@ -24,32 +24,27 @@
 
       <form class="login-form" #loginForm="ngForm" (ngSubmit)="onSignIn()" novalidate>
         <div class="field-group">
-          <label for="username">Username</label>
+          <label for="username">Correo electrónico</label>
           <div class="input-wrap">
             <span class="input-icon" aria-hidden="true">&#9787;</span>
-            <input id="username" type="text" name="username" [(ngModel)]="username" placeholder="Ingresa tu username" autocomplete="username" required />
+            <input id="username" type="email" name="username" [(ngModel)]="username" placeholder="Ingresa tu correo electrónico" autocomplete="username" required />
           </div>
         </div>
 
         <div class="field-group">
           <div class="label-row">
-            <label for="password">Password</label>
-            <a routerLink="/reset-password">¿Olvidaste tu contraseña?</a>
+            <label for="password">Contraseña</label>
           </div>
           <div class="input-wrap">
             <span class="input-icon lock-icon" aria-hidden="true">&#128274;</span>
-            <input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" placeholder="Ingresa tu password" autocomplete="current-password" required />
-            <button class="password-toggle" type="button" (click)="togglePassword()" [attr.aria-label]="showPassword ? 'Ocultar password' : 'Mostrar password'">
+            <input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" required />
+            <button class="password-toggle" type="button" (click)="togglePassword()" [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
               {{ showPassword ? 'Ocultar' : 'Mostrar' }}
             </button>
           </div>
         </div>
 
-        <!-- <div class="r"> -->
-          <a routerLink="/register">
-            <u>Registrarse</u>
-          </a>
-        <!-- </div> -->
+        <a routerLink="/register">Registrarse</a>
 
         <label class="remember-option">
           <input type="checkbox" name="remember" [(ngModel)]="rememberSession" />
@@ -64,6 +59,18 @@
           {{ isLoading ? 'Ingresando...' : 'Ingresar al panel' }} <span aria-hidden="true">&#8594;</span>
         </button>
       </form>
+
+      @if (oauthProviders.google || oauthProviders.github) {
+        <div class="oauth-options">
+          <p>O ingresa con</p>
+          @if (oauthProviders.google) {
+            <button type="button" (click)="signInWith('google')">Google</button>
+          }
+          @if (oauthProviders.github) {
+            <button type="button" (click)="signInWith('github')">GitHub</button>
+          }
+        </div>
+      }
 
       <p class="security-note"><span aria-hidden="true">&#10003;</span> Acceso protegido para tu equipo de trabajo</p>
     </div>

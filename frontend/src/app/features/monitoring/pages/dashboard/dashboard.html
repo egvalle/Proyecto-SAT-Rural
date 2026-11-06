@@ -48,11 +48,13 @@
       <div class="col-12 col-sm-6 col-lg-4 col-xl">
         <app-sensor-card
           title="Humedad relativa"
-          [value]="dashboard.humidity"
+          [value]="realHumidity?.value ?? dashboard.humidity"
           unit="%"
           icon="bi bi-droplet-fill"
-          status="Condición estable"
-          statusClass="normal">
+          [status]="realHumidity ? 'Lectura real · HUM-001' : 'Lectura simulada'"
+          [statusClass]="realHumidity && realHumidity.value >= 80 ? 'emergency' :
+            realHumidity && realHumidity.value >= 70 ? 'alert' :
+            realHumidity && realHumidity.value >= 60 ? 'warning' : 'normal'">
         </app-sensor-card>
       </div>
 
@@ -163,12 +165,13 @@
                   </td>
                   <td>Humedad</td>
                   <td>
-                    {{ dashboard.humidity }} %
+                    {{ realHumidity?.value ?? dashboard.humidity }} %
                   </td>
                   <td>
-                    <span class="sensor-badge normal">
+                    <span class="sensor-badge" [class.normal]="!realHumidity"
+                      [class.warning]="realHumidity">
                       <i class="bi bi-circle-fill"></i>
-                      Normal
+                      {{ realHumidity ? 'Real' : 'Simulado' }}
                     </span>
                   </td>
                 </tr>

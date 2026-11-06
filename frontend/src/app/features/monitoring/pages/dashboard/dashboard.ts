@@ -1,10 +1,11 @@
 import {
   Component,
+  ChangeDetectorRef,
   OnDestroy,
   OnInit
 } from '@angular/core';
 
-import { Subscription } from 'rxjs';
+import { interval, Subscription } from 'rxjs';
 
 import { SystemStatus }
   from '../../components/system-status/system-status';
@@ -32,6 +33,7 @@ import { SensorHistory }
 
 import { RecentAlert }
   from '../../models/recent-alert.model';
+import { LiveHumidityReading } from '../../services/monitoring.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -53,11 +55,12 @@ export class Dashboard implements OnInit, OnDestroy {
   recentAlerts: RecentAlert[] = [];
   loading = true;
   error = false;
-
-  private readingsSubscription?: Subscription;
+  realHumidity: LiveHumidityReading | null = null;
+  private liveSubscription?: Subscription;
 
   constructor(
-    private monitoringService: MonitoringService
+    private monitoringService: MonitoringService,
+    private readonly changeDetector: ChangeDetectorRef
   ) {
   }
 
@@ -66,23 +69,17 @@ export class Dashboard implements OnInit, OnDestroy {
     this.loadDashboard();
     this.loadHistory();
     this.loadAlerts();
-
-    this.readingsSubscription =
-      this.monitoringService
-        .readingsUpdated$
-        .subscribe(() => {
-          this.loadDashboard(false);
-          this.loadHistory();
-          this.loadAlerts();
-        });
-
-    this.monitoringService
-      .startRealtimeConnection();
+    this.loadLiveData();
+    this.liveSubscription = interval(5000).subscribe(() => {
+      this.loadDashboard(false);
+      this.loadHistory();
+      this.loadAlerts();
+      this.loadLiveData();
+    });
   }
 
   ngOnDestroy(): void {
-    this.readingsSubscription
-      ?.unsubscribe();
+    this.liveSubscription?.unsubscribe();
   }
 
   private loadDashboard(
@@ -99,6 +96,7 @@ export class Dashboard implements OnInit, OnDestroy {
         next: data => {
           this.dashboard = data;
           this.loading = false;
+          this.changeDetector.detectChanges();
         },
         error: error => {
           console.error(
@@ -107,6 +105,7 @@ export class Dashboard implements OnInit, OnDestroy {
           );
           this.error = true;
           this.loading = false;
+          this.changeDetector.detectChanges();
         }
       });
   }
@@ -117,6 +116,7 @@ export class Dashboard implements OnInit, OnDestroy {
       .subscribe({
         next: data => {
           this.history = data;
+          this.changeDetector.detectChanges();
         },
         error: error => {
           console.error(
@@ -133,6 +133,7 @@ export class Dashboard implements OnInit, OnDestroy {
       .subscribe({
         next: data => {
           this.recentAlerts = data;
+          this.changeDetector.detectChanges();
         },
         error: error => {
           console.error(
@@ -141,6 +142,23 @@ export class Dashboard implements OnInit, OnDestroy {
           );
         }
       });
+  }
+
+  private loadLiveData(): void {
+    this.monitoringService.getLiveHumidity().subscribe({
+      next: readings => {
+        const now = Date.now();
+        this.realHumidity = readings.find(item =>
+          item.source === 'REAL' &&
+          now - Date.parse(item.recordedAt) < 30000 &&
+          now - Date.parse(item.recordedAt) >= 0) ?? null;
+        this.changeDetector.detectChanges();
+      },
+      error: () => {
+        this.realHumidity = null;
+        this.changeDetector.detectChanges();
+      }
+    });
   }
 
 }

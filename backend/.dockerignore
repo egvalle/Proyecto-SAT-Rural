@@ -4,3 +4,9 @@
 **/.idea/
 **/*.user
 **/*.suo
+SatRural.AlertService/
+SatRural.Api/
+SatRural.AuthService/
+SatRural.Application/
+SatRural.Domain/
+SatRural.Infrastructure/

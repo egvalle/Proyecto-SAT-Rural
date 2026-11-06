@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 @Service
 public class AlertEmailService {
@@ -22,15 +23,18 @@ public class AlertEmailService {
     private final JavaMailSender mailSender;
     private final String sender;
     private final String recipientsConfiguration;
+    private final RestClient communityClient;
 
     public AlertEmailService(
         JavaMailSender mailSender,
         @Value("${spring.mail.username:}") String sender,
-        @Value("${satrural.notifications.recipients:}") String recipientsConfiguration
+        @Value("${satrural.notifications.recipients:}") String recipientsConfiguration,
+        @Value("${satrural.community.base-url}") String communityBaseUrl
     ) {
         this.mailSender = mailSender;
         this.sender = sender;
         this.recipientsConfiguration = recipientsConfiguration;
+        this.communityClient = RestClient.builder().baseUrl(communityBaseUrl).build();
     }
 
     public void sendAlertNotification(AlertNotificationEvent event) {
@@ -66,7 +70,7 @@ public class AlertEmailService {
             Fecha y hora: %s
             Evento: %s
             """.formatted(
-                event.communityId(),
+                communityName(event.communityId()),
                 event.sensorCode(),
                 event.phenomenon(),
                 event.riskLevel(),
@@ -84,4 +88,21 @@ public class AlertEmailService {
             recipients.length
         );
     }
+
+    private String communityName(int communityId) {
+        try {
+            CommunityLookup community = communityClient.get()
+                .uri("/api/communities/{id}", communityId)
+                .retrieve()
+                .body(CommunityLookup.class);
+            if (community != null && community.name() != null && !community.name().isBlank()) {
+                return community.name();
+            }
+        } catch (Exception exception) {
+            LOGGER.warn("No se pudo consultar la comunidad {} para el correo.", communityId);
+        }
+        return "Comunidad " + communityId;
+    }
+
+    private record CommunityLookup(String name) {}
 }

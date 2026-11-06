@@ -55,6 +55,10 @@ namespace SatRural.SensorService.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<decimal?>("ManualSimulationValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -177,6 +181,31 @@ namespace SatRural.SensorService.Migrations
                     b.HasIndex("SensorId", "RecordedAt");
 
                     b.ToTable("SensorReadings");
+                });
+
+            modelBuilder.Entity("SatRural.SensorService.Entities.SimulationSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Scenario")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SimulationSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Scenario = "NORMAL"
+                        });
                 });
 
             modelBuilder.Entity("SatRural.SensorService.Entities.SensorReading", b =>

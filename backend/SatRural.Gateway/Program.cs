@@ -32,7 +32,13 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy =>
+        policy.RequireAuthenticatedUser().RequireRole("ADMIN"));
+    options.AddPolicy("Operator", policy =>
+        policy.RequireAuthenticatedUser().RequireRole("ADMIN", "OPERATOR", "USER"));
+});
 
 builder.Services
     .AddReverseProxy()

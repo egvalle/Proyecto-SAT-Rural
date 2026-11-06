@@ -63,7 +63,8 @@ async def get_current_user(
 
     return {
         "id": payload["sub"],
-        "username": payload.get("unique_name"),
+        "username": payload.get("unique_name") or payload.get("email")
+        or payload.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"),
         "name": payload.get("name"),
         "role": _get_role(payload),
     }

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 
 import { AuthService, BinnacleEntry } from '../../../../core/services/auth.service';
@@ -12,6 +12,7 @@ import { ComponentCardComponent } from '../../../../shared/components/component-
 })
 export class Binnacle implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   entries: BinnacleEntry[] = [];
   isLoading = true;
@@ -26,10 +27,12 @@ export class Binnacle implements OnInit {
       next: entries => {
         this.entries = entries;
         this.isLoading = false;
+        this.changeDetector.detectChanges();
       },
       error: error => {
         this.isLoading = false;
         this.errorMessage = error.error?.message ?? 'No fue posible cargar la bitácora.';
+        this.changeDetector.detectChanges();
       }
     });
   }

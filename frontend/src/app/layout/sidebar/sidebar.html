@@ -91,12 +91,6 @@
       <p class="section-title admin-title">
         ADMINISTRACIÓN
       </p>
-      <!-- <a    class="disabled-link"
-        (click)="$event.preventDefault()">
-
-        <i class="bi bi-gear"></i>
-        Configuración
-      </a> -->
       <a
         routerLink="/alert-rules"
         routerLinkActive="active"
@@ -110,7 +104,7 @@
 
       </a>
 
-      <a routerLink="/user" routerLinkActive="active" (click)="$event.preventDefault()">
+      <a routerLink="/user" routerLinkActive="active" (click)="close()">
       
         <i class="bi bi-people"></i>
         Usuarios

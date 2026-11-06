@@ -66,25 +66,38 @@ export class AuthService {
 
   login(credentials: LoginRequest, rememberSession = true): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(this.loginUrl, credentials).pipe(
-      tap(response => {
-        const token = response.token ?? response.accessToken;
-
-        if (token) {
-          const storage = rememberSession ? localStorage : sessionStorage;
-          storage.setItem(this.tokenKey, token);
-          const role = response.user?.roleDescription ?? response.user?.role;
-
-          if (role) {
-            storage.setItem(this.roleKey, role);
-          }
-        
-          if (response.user?.roleId !== undefined) {
-            storage.setItem(this.roleIdKey, String(response.user.roleId));
-          }
-          this.authenticatedSubject.next(true);
-        }
-      })
+      tap(response => this.saveSession(response, rememberSession))
     );
+  }
+
+  getOAuthProviders(): Observable<{ google: boolean; github: boolean }> {
+    return this.http.get<{ google: boolean; github: boolean }>(
+      `${environment.apiBaseUrl}/api/auth/providers`
+    );
+  }
+
+  exchangeOAuthCode(code: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(
+      `${environment.apiBaseUrl}/api/auth/exchange`, { code }
+    ).pipe(tap(response => this.saveSession(response, true)));
+  }
+
+  oauthUrl(provider: 'google' | 'github'): string {
+    return `${environment.apiBaseUrl}/api/auth/oauth/${provider}`;
+  }
+
+  private saveSession(response: LoginResponse, rememberSession: boolean): void {
+    const token = response.token ?? response.accessToken;
+    if (!token) return;
+    this.logout();
+    const storage = rememberSession ? localStorage : sessionStorage;
+    storage.setItem(this.tokenKey, token);
+    const role = response.user?.roleDescription ?? response.user?.role;
+    if (role) storage.setItem(this.roleKey, role);
+    if (response.user?.roleId !== undefined) {
+      storage.setItem(this.roleIdKey, String(response.user.roleId));
+    }
+    this.authenticatedSubject.next(true);
   }
 
   createBinnacle(request: CreateBinnacleRequest): Observable<unknown> {
@@ -156,12 +169,14 @@ export class AuthService {
   }
 
   canAccessRoute(url: string): boolean {
-    if (this.getRoleId() !== 2) {
-      return true;
-    }
-
     const path = url.split(/[?#]/, 1)[0];
-    return ['/dashboard', '/sensors', '/alerts'].includes(path);
+    const roleId = this.getRoleId();
+    if (roleId === 1) return true;
+    if (roleId === 2) {
+      return !['/user', '/binnacle', '/alert-rules'].includes(path);
+    }
+    return ['/dashboard', '/sensors', '/readings', '/communities',
+      '/alerts', '/history', '/reports'].includes(path);
   }
 
   canWrite(): boolean {
@@ -187,8 +202,8 @@ export class AuthService {
   private withRoleName(user: AdminUser): AdminUser {
     const roleName: Record<number, string> = {
       1: 'ADMIN',
-      2: 'USER',
-      3: 'CONSULTA'
+      2: 'OPERATOR',
+      3: 'VIEWER'
     };
 
     return {

@@ -72,6 +72,7 @@ export class SensorChart
         x => x.type === 'RAINFALL'
       );
 
+
     const river =
       this.history.find(
         x => x.type === 'RIVER_LEVEL'

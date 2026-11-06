@@ -23,6 +23,13 @@ export const routes: Routes = [
         .then(m => m.Register),
     title: 'Crear usuario'
   },
+  {
+    path: 'oauth/callback',
+    loadComponent: () =>
+      import('./features/administration/pages/oauth-callback/oauth-callback')
+        .then(m => m.OAuthCallback),
+    title: 'Iniciando sesión'
+  },
 
   {
     path: '',

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 
 import { AlertsService } from '../../services/alerts.service';
@@ -22,7 +22,8 @@ export class Alerts implements OnInit {
 
   constructor(
     private alertsService: AlertsService,
-    readonly authService: AuthService
+    readonly authService: AuthService,
+    private readonly changeDetector: ChangeDetectorRef
   ) {
   }
 
@@ -44,10 +45,12 @@ export class Alerts implements OnInit {
         next: data => {
           this.alerts = data;
           this.loading = false;
+          this.changeDetector.detectChanges();
         },
         error: () => {
           this.error = true;
           this.loading = false;
+          this.changeDetector.detectChanges();
         }
       });
   }

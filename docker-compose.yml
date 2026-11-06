@@ -11,11 +11,15 @@ services:
       ASPNETCORE_URLS: "http://+:8080"
       ConnectionStrings__SensorDatabase: "Server=sqlserver,1433;Database=satrural_sensors;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Encrypt=False"
       SensorIngestion__ApiKey: "${SENSOR_DEVICE_API_KEY:?Define SENSOR_DEVICE_API_KEY en .env}"
+      Simulation__Enabled: "true"
       Jwt__Key: "${JWT_KEY:?Define JWT_KEY en .env}"
       Jwt__Issuer: "SatRural.Api"
       Jwt__Audience: "SatRural.Client"
       AlertService__BaseUrl: "http://alert-service:8080/"
       AlertService__ApiKey: "${ALERT_SERVICE_API_KEY:?Define ALERT_SERVICE_API_KEY en .env}"
+      CommunityService__BaseUrl: "http://community-service:8080/"
+      AuditService__BaseUrl: "http://audit-service:8000/"
+      AuditService__ApiKey: "${AUDIT_SERVICE_API_KEY:?Define AUDIT_SERVICE_API_KEY en .env}"
 
     depends_on:
       sqlserver:
@@ -61,6 +65,7 @@ services:
 
     volumes:
       - sqlserver-data:/var/opt/mssql
+      - ./migrations:/opt/satrural-migrations:ro
 
     healthcheck:
       test:
@@ -75,29 +80,6 @@ services:
 
     restart: unless-stopped
 
-  api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-
-    container_name: sat-rural-api
-
-    environment:
-      ASPNETCORE_ENVIRONMENT: "Development"
-      ASPNETCORE_URLS: "http://+:8080"
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=${MSSQL_DATABASE};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"
-      Jwt__Key: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
-      Jwt__Issuer: "SatRural.Api"
-      Jwt__Audience: "SatRural.Client"
-
-    ports:
-      - "8080:8080"
-
-    depends_on:
-      - sqlserver
-
-    restart: unless-stopped
-
   gateway:
     build:
       context: ./backend
@@ -108,11 +90,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:8080"
-      ReverseProxy__Clusters__legacy-api__Destinations__destination1__Address: "http://api:8080/"
-      ReverseProxy__Clusters__auth-service__Destinations__destination1__Address: "http://auth-service:8080/"
+      ReverseProxy__Clusters__auth-next__Destinations__destination1__Address: "http://auth-next:8080/"
       ReverseProxy__Clusters__community-service__Destinations__destination1__Address: "http://community-service:8080/"
       ReverseProxy__Clusters__report-service__Destinations__destination1__Address: "http://report-service:8000/"
       ReverseProxy__Clusters__sensor-service__Destinations__destination1__Address: "http://sensor-service:8080/"
+      ReverseProxy__Clusters__alert-service__Destinations__destination1__Address: "http://alert-service:8080/"
+      ReverseProxy__Clusters__audit-service__Destinations__destination1__Address: "http://audit-service:8000/"
       Jwt__Key: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
       Jwt__Issuer: "SatRural.Api"
       Jwt__Audience: "SatRural.Client"
@@ -121,35 +104,170 @@ services:
       - "8081:8080"
 
     depends_on:
-      - api
-      - auth-service
+      - auth-next
+      - community-service
+      - sensor-service
+      - alert-service
+      - audit-service
       - report-service
 
     restart: unless-stopped
 
-  auth-service:
-    build:
-      context: ./backend
-      dockerfile: SatRural.AuthService/Dockerfile
-
-    container_name: sat-rural-auth-service
-
+  auth-db:
+    image: postgres:17-alpine
+    container_name: sat-rural-auth-db
     environment:
-      ASPNETCORE_ENVIRONMENT: "Development"
-      ASPNETCORE_URLS: "http://+:8080"
-      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=${MSSQL_DATABASE};User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;"
-      Jwt__Key: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
-      Jwt__Issuer: "SatRural.Api"
-      Jwt__Audience: "SatRural.Client"
-
+      POSTGRES_DB: satrural_auth
+      POSTGRES_USER: satrural_auth
+      POSTGRES_PASSWORD: "${AUTH_DB_PASSWORD:?Define AUTH_DB_PASSWORD en .env}"
+    volumes:
+      - auth-data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:8082:8080"
+      - "127.0.0.1:5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U satrural_auth -d satrural_auth"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
 
+  auth-next:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: sat-rural-auth-next
+    environment:
+      PORT: "8080"
+      AUTH_DB_HOST: "auth-db"
+      AUTH_DB_PASSWORD: "${AUTH_DB_PASSWORD:?Define AUTH_DB_PASSWORD en .env}"
+      JWT_KEY: "${JWT_KEY:?Define JWT_KEY en .env}"
+      JWT_ISSUER: "SatRural.Api"
+      JWT_AUDIENCE: "SatRural.Client"
+      JWT_EXPIRES_MINUTES: "60"
+      FRONTEND_URL: "http://localhost:4200"
+      OAUTH_CALLBACK_BASE_URL: "http://localhost:8081/api/auth"
+      AUDIT_SERVICE_URL: "http://audit-service:8000/"
+      AUDIT_SERVICE_API_KEY: "${AUDIT_SERVICE_API_KEY:?Define AUDIT_SERVICE_API_KEY en .env}"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:-}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:-}"
+      GITHUB_CLIENT_ID: "${GITHUB_CLIENT_ID:-}"
+      GITHUB_CLIENT_SECRET: "${GITHUB_CLIENT_SECRET:-}"
     depends_on:
+      auth-db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8086:8080"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8080/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  auth-migrate:
+    profiles: ["migration"]
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    environment:
+      AUTH_DB_HOST: "auth-db"
+      AUTH_DB_PASSWORD: "${AUTH_DB_PASSWORD:?Define AUTH_DB_PASSWORD en .env}"
+      LEGACY_SQL_HOST: "sqlserver"
+      MSSQL_DATABASE: "${MSSQL_DATABASE}"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+    command: ["node", "scripts/migrate-users.mjs"]
+    depends_on:
+      auth-next:
+        condition: service_healthy
       sqlserver:
         condition: service_healthy
 
-    restart: unless-stopped
+  data-migrate:
+    profiles: ["migration"]
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    environment:
+      MSSQL_DATABASE: "${MSSQL_DATABASE}"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      COMMUNITY_DB_USER: "${COMMUNITY_DB_USER}"
+      COMMUNITY_DB_PASSWORD: "${COMMUNITY_DB_PASSWORD}"
+      ALERT_DB_PASSWORD: "${ALERT_DB_PASSWORD}"
+    volumes:
+      - ./migrations:/app/migrations:ro
+    command: ["node", "migrations/migrate-data.mjs"]
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      community-db:
+        condition: service_healthy
+      alert-service:
+        condition: service_started
+
+  sensor-migrate:
+    profiles: ["migration"]
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    environment:
+      MSSQL_DATABASE: "${MSSQL_DATABASE}"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+    volumes:
+      - ./migrations:/app/migrations:ro
+    command: ["node", "migrations/migrate-sensors.mjs"]
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      sensor-service:
+        condition: service_started
+
+  audit-migrate:
+    profiles: ["migration"]
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    environment:
+      MSSQL_DATABASE: "${MSSQL_DATABASE}"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      MONGO_ROOT_USERNAME: "${MONGO_ROOT_USERNAME}"
+      MONGO_ROOT_PASSWORD: "${MONGO_ROOT_PASSWORD}"
+    volumes:
+      - ./migrations:/app/migrations:ro
+    command: ["node", "migrations/migrate-audit.mjs"]
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+
+  verify-migration:
+    profiles: ["migration"]
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    environment:
+      MSSQL_DATABASE: "${MSSQL_DATABASE}"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD}"
+      AUTH_DB_PASSWORD: "${AUTH_DB_PASSWORD:?Define AUTH_DB_PASSWORD en .env}"
+      COMMUNITY_DB_USER: "${COMMUNITY_DB_USER}"
+      COMMUNITY_DB_PASSWORD: "${COMMUNITY_DB_PASSWORD}"
+      ALERT_DB_PASSWORD: "${ALERT_DB_PASSWORD}"
+      MONGO_ROOT_USERNAME: "${MONGO_ROOT_USERNAME}"
+      MONGO_ROOT_PASSWORD: "${MONGO_ROOT_PASSWORD}"
+    volumes:
+      - ./migrations:/app/migrations:ro
+    command: ["node", "migrations/verify-migration.mjs"]
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      auth-next:
+        condition: service_healthy
+      community-db:
+        condition: service_healthy
+      alert-service:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
 
   community-service:
     build:
@@ -162,6 +280,11 @@ services:
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:8080"
       ConnectionStrings__CommunityDatabase: "Host=community-db;Port=5432;Database=satrural_community;Username=${COMMUNITY_DB_USER};Password=${COMMUNITY_DB_PASSWORD}"
+      AuditService__BaseUrl: "http://audit-service:8000/"
+      AuditService__ApiKey: "${AUDIT_SERVICE_API_KEY:?Define AUDIT_SERVICE_API_KEY en .env}"
+      Jwt__Key: "${JWT_KEY:?Define JWT_KEY en .env}"
+      Jwt__Issuer: "SatRural.Api"
+      Jwt__Audience: "SatRural.Client"
 
     ports:
       - "127.0.0.1:8083:8080"
@@ -226,7 +349,8 @@ services:
       JWT_KEY: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
       JWT_ISSUER: "SatRural.Api"
       JWT_AUDIENCE: "SatRural.Client"
-      ALERTS_API_URL: "http://api:8080/api/alerts"
+      REPORT_DATA_API_URL: "http://gateway:8080"
+      ALERTS_API_URL: "http://alert-service:8080/api/alerts"
       REPORT_STORAGE_PATH: "/app/storage"
 
     volumes:
@@ -239,6 +363,29 @@ services:
       mongodb:
         condition: service_healthy
     
+    restart: unless-stopped
+
+  audit-service:
+    build:
+      context: ./audit-service
+      dockerfile: Dockerfile
+
+    container_name: sat-rural-audit-service
+
+    environment:
+      MONGO_URI: "mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongodb:27017/?authSource=admin"
+      JWT_KEY: "${JWT_KEY:?Define JWT_KEY en el archivo .env}"
+      JWT_ISSUER: "SatRural.Api"
+      JWT_AUDIENCE: "SatRural.Client"
+      AUDIT_SERVICE_API_KEY: "${AUDIT_SERVICE_API_KEY:?Define AUDIT_SERVICE_API_KEY en .env}"
+
+    ports:
+      - "127.0.0.1:8001:8000"
+
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
     restart: unless-stopped
 
   alert-db:
@@ -275,7 +422,12 @@ services:
       SPRING_DATASOURCE_USERNAME: satrural_alerts
       SPRING_DATASOURCE_PASSWORD: "${ALERT_DB_PASSWORD:?Define ALERT_DB_PASSWORD en .env}"
       ALERT_SERVICE_API_KEY: "${ALERT_SERVICE_API_KEY:?Define ALERT_SERVICE_API_KEY en .env}"
+      JWT_KEY: "${JWT_KEY:?Define JWT_KEY en .env}"
+      JWT_ISSUER: "SatRural.Api"
+      JWT_AUDIENCE: "SatRural.Client"
       SERVER_PORT: "8080"
+      AUDIT_SERVICE_BASE_URL: "http://audit-service:8000"
+      AUDIT_SERVICE_API_KEY: "${AUDIT_SERVICE_API_KEY:?Define AUDIT_SERVICE_API_KEY en .env}"
       GMAIL_USERNAME: "${GMAIL_USERNAME:?Define GMAIL_USERNAME en .env}"
       GMAIL_APP_PASSWORD: "${GMAIL_APP_PASSWORD:?Define GMAIL_APP_PASSWORD en .env}"
       ALERT_NOTIFICATIONS_RECIPIENTS: "${ALERT_NOTIFICATIONS_RECIPIENTS:?Define ALERT_NOTIFICATIONS_RECIPIENTS en .env}"
@@ -293,3 +445,4 @@ volumes:
   report-files:
   community-data:
   alert-data:
+  auth-data:

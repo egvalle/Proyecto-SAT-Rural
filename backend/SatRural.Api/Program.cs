@@ -14,6 +14,7 @@ using SatRural.Infrastructure.Persistence.Repositories;
 using SatRural.Application.Modules.Audit.Interfaces;
 using SatRural.Application.Modules.Audit.Services;
 using SatRural.Api.Data;
+using SatRural.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,7 +71,15 @@ builder.Services.AddHealthChecks();
 builder.Services.AddScoped<RiskEvaluationService>();
 builder.Services.AddScoped<IAlertRuleRepository, AlertRuleRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
-builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<AuditLogService>();
+builder.Services.AddScoped<IAuditLogService, AuditForwardingService>();
+builder.Services.AddHttpClient("AuditService", client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["AuditService:BaseUrl"]
+        ?? "http://audit-service:8000/");
+    client.Timeout = TimeSpan.FromSeconds(3);
+});
 
 builder.Services.AddSignalR();
 

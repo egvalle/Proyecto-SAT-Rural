@@ -12,8 +12,10 @@ from starlette.concurrency import run_in_threadpool
 from weasyprint import HTML
 
 from app.auth import require_roles
+from app.catalog import ReportRequest, build_report, write_report
 
 router = APIRouter(tags=["reports"])
+REPORT_ROLES = ("ADMIN", "OPERATOR", "VIEWER", "USER", "USERCONSULTA")
 
 TEMPLATE_DIRECTORY = Path(__file__).parent / "templates"
 template_environment = Environment(
@@ -23,7 +25,7 @@ template_environment = Environment(
 
 ALERTS_API_URL = os.getenv(
     "ALERTS_API_URL",
-    "http://api:8080/api/alerts",
+    "http://alert-service:8080/api/alerts",
 )
 REPORT_STORAGE_PATH = Path(
     os.getenv("REPORT_STORAGE_PATH", "/app/storage")
@@ -106,7 +108,7 @@ async def generate_alert_report(
     filters: AlertReportFilters,
     request: Request,
     current_user: dict = Depends(
-        require_roles("ADMIN", "USERCONSULTA")
+        require_roles(*REPORT_ROLES)
     ),
 ):
     token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
@@ -179,7 +181,7 @@ async def list_report_history(
     request: Request,
     limit: int = Query(default=20, ge=1, le=100),
     current_user: dict = Depends(
-        require_roles("ADMIN", "USERCONSULTA")
+        require_roles(*REPORT_ROLES)
     ),
 ):
     reports = await (
@@ -195,6 +197,9 @@ async def list_report_history(
                 "generatedBy": 1,
                 "filters": 1,
                 "totalAlerts": 1,
+                "totalItems": 1,
+                "status": 1,
+                "downloadedAt": 1,
             },
         )
         .sort("generatedAt", -1)
@@ -213,7 +218,7 @@ async def download_report(
     report_id: str,
     request: Request,
     current_user: dict = Depends(
-        require_roles("ADMIN", "USERCONSULTA")
+        require_roles(*REPORT_ROLES)
     ),
 ):
     report = await request.app.state.database["reports"].find_one(
@@ -236,8 +241,66 @@ async def download_report(
             detail="El archivo del reporte no está disponible.",
         )
 
+    await request.app.state.database["reports"].update_one(
+        {"reportId": report_id},
+        {"$set": {"downloadedAt": datetime.now(timezone.utc)}},
+    )
+
     return FileResponse(
         path=file_path,
         media_type="application/pdf",
         filename=report["fileName"],
     )
+
+
+@router.get("/types")
+async def report_types(current_user: dict = Depends(require_roles(*REPORT_ROLES))):
+    return [
+        {"type": "communities", "label": "Comunidades"},
+        {"type": "sensors", "label": "Sensores"},
+        {"type": "readings", "label": "Lecturas"},
+        {"type": "alerts", "label": "Alertas"},
+        {"type": "events", "label": "Historial de eventos"},
+        {"type": "sensor-status", "label": "Estado de sensores"},
+        {"type": "climate", "label": "Estadísticas climáticas"},
+        {"type": "executive", "label": "Ejecutivo"},
+    ]
+
+
+@router.post("/generate", response_class=FileResponse)
+async def generate_report(
+    filters: ReportRequest,
+    request: Request,
+    current_user: dict = Depends(require_roles(*REPORT_ROLES)),
+):
+    token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+    if not token:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "No se recibió el token Bearer.")
+    title, columns, rows = await build_report(filters, token)
+    report_id, file_name, file_path = await write_report(
+        filters.type, title, columns, rows,
+        current_user.get("username") or current_user.get("id", "usuario"),
+    )
+    metadata = {
+        "reportId": report_id,
+        "type": filters.type,
+        "fileName": file_name,
+        "storagePath": str(file_path),
+        "generatedAt": datetime.now(timezone.utc),
+        "generatedBy": {
+            "userId": current_user.get("id"),
+            "username": current_user.get("username"),
+            "role": current_user.get("role"),
+        },
+        "filters": filters.model_dump(mode="json"),
+        "totalItems": len(rows),
+        "status": "generated",
+        "downloadedAt": None,
+    }
+    try:
+        await request.app.state.database["reports"].insert_one(metadata)
+    except Exception as exc:
+        file_path.unlink(missing_ok=True)
+        raise HTTPException(503, "No se pudieron guardar los metadatos del reporte.") from exc
+    return FileResponse(path=file_path, media_type="application/pdf",
+                        filename=file_name, headers={"X-Report-Id": report_id})

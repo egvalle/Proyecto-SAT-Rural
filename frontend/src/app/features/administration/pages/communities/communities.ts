@@ -1,10 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { catchError, forkJoin, map, of, switchMap } from 'rxjs';
 
 import { ComponentCardComponent } from '../../../../shared/components/component-card/component-card.component';
 
 import { Community } from '../../../../core/models/community';
 import { CommunityService } from '../../../../core/services/community.service';
+import { SensorService } from '../../../../core/services/sensor.service';
 
 @Component({
   selector: 'app-communities',
@@ -17,9 +19,12 @@ import { CommunityService } from '../../../../core/services/community.service';
 })
 export class Communities implements OnInit {
 
-  get totalSensorsOnPage(): number {
+  get totalSensorsOnPage(): number | null {
+    if (this.communities.some(community => community.sensorCount == null)) {
+      return null;
+    }
     return this.communities.reduce(
-      (total, community) => total + community.sensorCount,
+      (total, community) => total + (community.sensorCount ?? 0),
       0
     );
   }
@@ -56,11 +61,11 @@ export class Communities implements OnInit {
   totalItems = 0;
   totalPages = 0;
 
-  pdfExportError = '';
-  isGeneratingPdf = false;
 
   constructor(
-    private readonly communityService: CommunityService
+    private readonly communityService: CommunityService,
+    private readonly sensorService: SensorService,
+    private readonly changeDetector: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
@@ -84,6 +89,21 @@ export class Communities implements OnInit {
       status,
       page,
       this.pageSize
+    ).pipe(
+      switchMap(response => {
+        if (!response.items.length) {
+          return of(response);
+        }
+        return forkJoin(response.items.map(community =>
+          this.sensorService.getSensors('', '', '', community.id, undefined, 1, 1).pipe(
+            map(sensors => ({ ...community, sensorCount: sensors.totalItems })),
+            catchError(() => of({
+              ...community,
+              sensorCount: community.sensorCount ?? null
+            }))
+          )
+        )).pipe(map(items => ({ ...response, items })));
+      })
     ).subscribe({
 
       next: response => {
@@ -96,6 +116,7 @@ export class Communities implements OnInit {
         this.totalPages = response.totalPages;
 
         this.isLoading = false;
+        this.changeDetector.detectChanges();
       },
 
       error: () => {
@@ -109,6 +130,7 @@ export class Communities implements OnInit {
 
         this.listError =
           'No se pudo consultar la lista de comunidades.';
+        this.changeDetector.detectChanges();
       }
     });
   }
@@ -117,78 +139,10 @@ export class Communities implements OnInit {
     this.loadCommunities(1);
   }
 
-  async downloadComunitiesPdf(): Promise<void> {
-    this.pdfExportError = '';
-
-    if (this.communities.length === 0) {
-      this.pdfExportError = 'No hay comunidades para incluir en el PDF.';
-      return;
-    }
-
-    this.isGeneratingPdf = true;
-
-    try {
-      const [{ jsPDF }, { default: autoTable }] = await Promise.all([
-        import('jspdf'),
-        import('jspdf-autotable')
-      ]);
-      const document = new jsPDF({ orientation: 'landscape' });
-      const generatedAt = new Intl.DateTimeFormat('es-GT', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-      }).format(new Date());
-
-      document.setFontSize(16);
-      document.text('Reporte de comunidades', 14, 18);
-      document.setFontSize(10);
-      document.text(
-        `Generado: ${generatedAt} | Página ${this.currentPage} de ${this.totalPages || 1} (${this.totalItems} registros en total)`,
-        14,
-        25
-      );
-
-      autoTable(document, {
-        startY: 32,
-        head: [[
-          'Comunidad',
-          'Municipio',
-          'Departamento',
-          'País',
-          'Coordenadas',
-          'Sensores',
-          'Estado'
-        ]],
-        body: this.communities.map(community => [
-          community.description
-            ? `${community.name}\n${community.description}`
-            : community.name,
-          community.municipality,
-          community.department,
-          community.country,
-          community.latitude !== null && community.longitude !== null
-            ? `${community.latitude}, ${community.longitude}`
-            : 'Sin coordenadas',
-          community.sensorCount,
-          community.isActive ? 'Activa' : 'Inactiva'
-        ]),
-        styles: {
-          fontSize: 9,
-          cellPadding: 3
-        },
-        headStyles: {
-          fillColor: [13, 110, 253]
-        },
-        margin: { left: 14, right: 14 }
-      });
-
-      document.save(`comunidades-pagina-${this.currentPage}.pdf`);
-    } catch (error) {
-      console.error('No se pudo generar el PDF de comunidades:', error);
-      this.pdfExportError = 'No se pudo generar el archivo PDF. Inténtalo nuevamente.';
-    } finally {
-      this.isGeneratingPdf = false;
-    }
+  downloadComunitiesPdf(): void {
+    window.location.assign('/reports?type=communities');
   }
+
   clearFilters(): void {
 
     this.filterSearch = '';

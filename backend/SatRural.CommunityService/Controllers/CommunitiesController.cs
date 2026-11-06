@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using SatRural.CommunityService.Models;
 using SatRural.CommunityService.Persistence;
+using SatRural.CommunityService.Services;
 
 namespace SatRural.CommunityService.Controllers;
 
@@ -10,10 +12,12 @@ namespace SatRural.CommunityService.Controllers;
 public sealed class CommunitiesController : ControllerBase
 {
     private readonly CommunityDbContext _dbContext;
+    private readonly AuditLogClient _audit;
 
-    public CommunitiesController(CommunityDbContext dbContext)
+    public CommunitiesController(CommunityDbContext dbContext, AuditLogClient audit)
     {
         _dbContext = dbContext;
+        _audit = audit;
     }
 
     // GET /api/communities?search=&municipality=&department=&isActive=&page=1&pageSize=10
@@ -103,6 +107,7 @@ public sealed class CommunitiesController : ControllerBase
 
     // POST /api/communities
     [HttpPost]
+    [Authorize(Roles = "ADMIN,OPERATOR")]
     public async Task<ActionResult<CommunityResponse>> Create(
         CreateCommunityRequest request,
         CancellationToken cancellationToken)
@@ -140,6 +145,8 @@ public sealed class CommunitiesController : ControllerBase
 
         _dbContext.Communities.Add(community);
         await _dbContext.SaveChangesAsync(cancellationToken);
+        await _audit.RecordAsync(User, "CREATE", community.Id,
+            $"Comunidad creada: {community.Name}", cancellationToken);
 
         var response = ToResponse(community);
 
@@ -151,6 +158,7 @@ public sealed class CommunitiesController : ControllerBase
 
     // PUT /api/communities/2
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "ADMIN,OPERATOR")]
     public async Task<ActionResult<CommunityResponse>> Update(
         int id,
         UpdateCommunityRequest request,
@@ -191,12 +199,15 @@ public sealed class CommunitiesController : ControllerBase
         community.Description = CleanDescription(request.Description);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        await _audit.RecordAsync(User, "UPDATE", community.Id,
+            $"Comunidad actualizada: {community.Name}", cancellationToken);
 
         return Ok(ToResponse(community));
     }
 
     // PATCH /api/communities/2/status
     [HttpPatch("{id:int}/status")]
+    [Authorize(Roles = "ADMIN,OPERATOR")]
     public async Task<ActionResult<CommunityResponse>> ChangeStatus(
         int id,
         ChangeCommunityStatusRequest request,
@@ -215,6 +226,8 @@ public sealed class CommunitiesController : ControllerBase
         community.IsActive = request.IsActive;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+        await _audit.RecordAsync(User, "STATUS", community.Id,
+            $"Estado activo: {community.IsActive}", cancellationToken);
 
         return Ok(ToResponse(community));
     }

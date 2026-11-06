@@ -13,6 +13,9 @@
 **/node_modules/
 **/dist/
 .angular/
+**/target/
+**/__pycache__/
+*.pyc
 
 # IDE
 .vscode/

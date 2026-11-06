@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { AlertRuleService } from '../../../../core/services/alert-rule.service';
@@ -119,7 +119,8 @@ export class AlertRules implements OnInit {
 
   constructor(
     private readonly alertRuleService: AlertRuleService,
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly changeDetector: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -141,6 +142,7 @@ export class AlertRules implements OnInit {
       next: (rules) => {
         this.rules = rules;
         this.isLoading = false;
+        this.changeDetector.detectChanges();
       },
 
       error: (error) => {
@@ -153,6 +155,7 @@ export class AlertRules implements OnInit {
           'No fue posible consultar las reglas de alertas.';
 
         this.isLoading = false;
+        this.changeDetector.detectChanges();
       }
     });
   }

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentCardComponent } from '../../../../shared/components/component-card/component-card.component';
@@ -11,8 +11,9 @@ import { AuthService } from '../../../../core/services/auth.service';
   templateUrl: './user.html',
   styleUrl: './user.scss',
 })
-export class User {
+export class User implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
 
   searchText = '';
   selectedRoleId = '';
@@ -30,6 +31,10 @@ export class User {
   saveMessage = '';
   updatingUserId: number | null = null;
 
+  ngOnInit(): void {
+    this.searchUsers();
+  }
+
   searchUsers(): void {
     this.isLoading = true;
     this.hasSearched = true;
@@ -43,12 +48,14 @@ export class User {
         this.users = users;
         this.applyTextFilter();
         this.isLoading = false;
+        this.changeDetector.detectChanges();
       },
       error: () => {
         this.users = [];
         this.filteredUsers = [];
         this.errorMessage = 'No se pudo consultar la lista de usuarios.';
         this.isLoading = false;
+        this.changeDetector.detectChanges();
       }
     });
   }

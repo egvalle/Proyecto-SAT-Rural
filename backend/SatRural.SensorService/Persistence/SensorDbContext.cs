@@ -15,6 +15,9 @@ public sealed class SensorDbContext : DbContext
     public DbSet<SensorReading> SensorReadings =>
         Set<SensorReading>();
 
+    public DbSet<SimulationSetting> SimulationSettings =>
+        Set<SimulationSetting>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var sensor = modelBuilder.Entity<Sensor>();
@@ -50,6 +53,9 @@ public sealed class SensorDbContext : DbContext
             .HasMaxLength(20)
             .HasDefaultValue("SIMULATED")
             .IsRequired();
+
+        sensor.Property(item => item.ManualSimulationValue)
+            .HasPrecision(18, 2);
 
         sensor.HasMany(item => item.Readings)
             .WithOne(reading => reading.Sensor)
@@ -138,6 +144,17 @@ public sealed class SensorDbContext : DbContext
         {
             item.SensorId,
             item.RecordedAt
+        });
+
+        var simulation = modelBuilder.Entity<SimulationSetting>();
+        simulation.HasKey(item => item.Id);
+        simulation.Property(item => item.Scenario)
+            .HasMaxLength(30)
+            .IsRequired();
+        simulation.HasData(new SimulationSetting
+        {
+            Id = 1,
+            Scenario = "NORMAL"
         });
     }
 }

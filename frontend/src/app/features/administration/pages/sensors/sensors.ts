@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ComponentCardComponent } from '../../../../shared/components/component-card/component-card.component';
@@ -39,8 +39,6 @@ export class Sensors implements OnInit {
   saveMessage = '';
   saveError = '';
   sensorListError = '';
-  pdfExportError = '';
-  isGeneratingPdf = false;
 
   editingSensorId: number | null = null;
 
@@ -143,7 +141,8 @@ export class Sensors implements OnInit {
 
   constructor(
     private readonly sensorService: SensorService,
-    private readonly communityService: CommunityService
+    private readonly communityService: CommunityService,
+    private readonly changeDetector: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -193,6 +192,7 @@ export class Sensors implements OnInit {
 
         if (selectCommunityId !== undefined) {
           this.sensorCommunityId = selectCommunityId;
+          this.changeDetector.detectChanges();
           return;
         }
 
@@ -203,11 +203,13 @@ export class Sensors implements OnInit {
           this.sensorCommunityId =
             this.communities[0].id;
         }
+        this.changeDetector.detectChanges();
       },
 
       error: () => {
         this.communities = [];
         this.isLoadingCommunities = false;
+        this.changeDetector.detectChanges();
       }
     });
   }
@@ -247,6 +249,7 @@ export class Sensors implements OnInit {
         this.totalItems = response.totalItems;
         this.totalPages = response.totalPages;
         this.isLoadingSensors = false;
+        this.changeDetector.detectChanges();
       },
 
       error: () => {
@@ -257,6 +260,7 @@ export class Sensors implements OnInit {
 
         this.sensorListError =
           'No se pudo consultar la lista de sensores.';
+        this.changeDetector.detectChanges();
       }
     });
   }
@@ -275,75 +279,8 @@ export class Sensors implements OnInit {
     this.loadSensors(1);
   }
 
-  async downloadSensorsPdf(): Promise<void> {
-    this.pdfExportError = '';
-
-    if (this.sensors.length === 0) {
-      this.pdfExportError = 'No hay sensores para incluir en el PDF.';
-      return;
-    }
-
-    this.isGeneratingPdf = true;
-
-    try {
-      const [{ jsPDF }, { default: autoTable }] = await Promise.all([
-        import('jspdf'),
-        import('jspdf-autotable')
-      ]);
-      const document = new jsPDF({ orientation: 'landscape' });
-      const generatedAt = new Intl.DateTimeFormat('es-GT', {
-        dateStyle: 'medium',
-        timeStyle: 'short'
-      }).format(new Date());
-
-      document.setFontSize(16);
-      document.text('Reporte de sensores', 14, 18);
-      document.setFontSize(10);
-      document.text(
-        `Generado: ${generatedAt} | Página ${this.currentPage} de ${this.totalPages || 1} (${this.totalItems} registros en total)`,
-        14,
-        25
-      );
-
-      autoTable(document, {
-        startY: 32,
-        head: [[
-          'Código',
-          'Sensor',
-          'Tipo',
-          'Comunidad',
-          'Ubicación',
-          'Unidad',
-          'Estado'
-        ]],
-        body: this.sensors.map(sensor => [
-          sensor.code,
-          sensor.description
-            ? `${sensor.name}\n${sensor.description}`
-            : sensor.name,
-          this.getSensorTypeLabel(sensor.type),
-          sensor.communityName,
-          sensor.location || 'Sin ubicación',
-          sensor.unit,
-          sensor.isActive ? 'Activo' : 'Inactivo'
-        ]),
-        styles: {
-          fontSize: 9,
-          cellPadding: 3
-        },
-        headStyles: {
-          fillColor: [13, 110, 253]
-        },
-        margin: { left: 14, right: 14 }
-      });
-
-      document.save(`sensores-pagina-${this.currentPage}.pdf`);
-    } catch (error) {
-      console.error('No se pudo generar el PDF de sensores:', error);
-      this.pdfExportError = 'No se pudo generar el archivo PDF. Inténtalo nuevamente.';
-    } finally {
-      this.isGeneratingPdf = false;
-    }
+  downloadSensorsPdf(): void {
+    window.location.assign('/reports?type=sensors');
   }
 
   // ============================================================

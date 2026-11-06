@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 14mm;
+      @bottom-right { content: "Página " counter(page) " de " counter(pages); color: #677b72; }
+    }
+    body { font-family: DejaVu Sans, sans-serif; color: #173b35; font-size: 9px; }
+    h1 { color: #14513d; font-size: 18px; margin-bottom: 4px; }
+    .brand { display: inline-block; padding: 6px 8px; margin-right: 8px;
+      background: #14513d; color: white; font-size: 11px; vertical-align: middle; }
+    .meta { color: #566b64; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th { background: #14513d; color: white; text-align: left; }
+    th, td { padding: 6px; border: 1px solid #ccd7d1; word-break: break-word; }
+    tr:nth-child(even) { background: #f2f6f3; }
+    thead { display: table-header-group; }
+    tr { break-inside: avoid; }
+    footer { margin-top: 14px; color: #677b72; }
+  </style>
+</head>
+<body>
+  <h1><span class="brand">SAT</span>{{ title }}</h1>
+  <div class="meta">Generado: {{ generated_at }} · Usuario: {{ username }} · Registros: {{ rows|length }}</div>
+  <table>
+    <thead><tr>{% for heading, key in columns %}<th>{{ heading }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>{% for heading, key in columns %}<td>{{ display(row.get(key)) }}</td>{% endfor %}</tr>
+      {% else %}
+      <tr><td colspan="{{ columns|length }}">Sin datos para los filtros seleccionados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <footer>SAT-Rural · Sistema de monitoreo y alerta temprana</footer>
+</body>
+</html>
