@@ -12,7 +12,7 @@ import { AuthService } from '../../../../core/services/auth.service';
   styleUrl: './event-simulator.scss'
 })
 export class EventSimulator {
-  scenario = 'NORMAL';
+  scenario = 'HEAVY_RAIN';
   running = false;
   message = 'El simulador está en espera. Selecciona un escenario para demostrar el comportamiento del sistema.';
 
@@ -36,7 +36,7 @@ export class EventSimulator {
     this.running = true;
     this.monitoringService.startSimulation(this.scenario).subscribe({
       next: () => {
-        this.message = `Escenario global activo: ${this.getScenarioName()}.`;
+        this.message = `Escenario global activo: ${this.getScenarioName()}. Pulsa «Detener simulación» al terminar.`;
         this.running = false;
         this.changeDetector.detectChanges();
       },
@@ -58,8 +58,7 @@ export class EventSimulator {
     this.running = true;
     this.monitoringService.resetSimulation().subscribe({
       next: () => {
-        this.scenario = 'NORMAL';
-        this.message = 'Escenario normal activado. Las lecturas volverán gradualmente a sus valores habituales.';
+        this.message = 'Simulación detenida. No se generarán nuevas lecturas simuladas.';
         this.running = false;
         this.changeDetector.detectChanges();
       },
@@ -73,7 +72,6 @@ export class EventSimulator {
 
   private getScenarioName(): string {
     const scenarios: Record<string, string> = {
-      NORMAL: 'Condiciones normales',
       HEAVY_RAIN: 'Lluvia intensa',
       STORM: 'Tormenta',
       FLOOD: 'Riesgo de inundación',

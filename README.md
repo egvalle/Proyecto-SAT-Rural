@@ -1,25 +1,94 @@
 # SAT-Rural
 
-Sistema de monitoreo y alerta temprana para comunidades rurales. El entorno local se ejecuta con Docker Compose y expone las API mediante un Gateway en `http://localhost:8081`.
+Sistema web de monitoreo climático y alerta temprana para comunidades rurales. Permite consultar comunidades, sensores, lecturas, alertas y eventos; administrar reglas, atender alertas, revisar auditoría y generar reportes PDF. Incluye un simulador manual para demostrar escenarios climáticos.
 
-## Servicios
+## Aplicación publicada
 
-| Servicio | Tecnología | Responsabilidad |
+- Sitio: [https://sat-rural-desaweb.duckdns.org](https://sat-rural-desaweb.duckdns.org)
+- Cuenta administradora de demostración: `adminangi@gmail.com` (rol `ADMIN`). Usa la contraseña `adminangi123*`.
+- Las alertas YELLOW, ORANGE y RED pueden enviar avisos por correo al activarse o escalar. El envío se configura mediante variables privadas en `.env`.
+
+## Microservicios
+
+| Servicio | Tecnología | Función |
 | --- | --- | --- |
-| Frontend | Angular 22, Tailwind CSS y Nginx | Panel, simulación y reportes |
-| Gateway | ASP.NET Core 10 y YARP | Entrada única, JWT y rutas |
-| AuthService | NestJS y PostgreSQL | Usuarios, roles, JWT y acceso OAuth |
+| Frontend | Angular 22, Tailwind CSS y Nginx | Panel web, administración y simulación |
+| Gateway | ASP.NET Core 10 y YARP | Entrada API, validación JWT y enrutamiento |
+| AuthService | NestJS y PostgreSQL | Usuarios, roles, JWT e inicio de sesión |
 | CommunityService | ASP.NET Core 10 y PostgreSQL | Comunidades |
-| SensorService | ASP.NET Core 10 y SQL Server | Sensores, lecturas y dashboard |
-| AlertService | Spring Boot 4 y PostgreSQL | Reglas, alertas, eventos y avisos Gmail |
+| SensorService | ASP.NET Core 10 y SQL Server | Sensores, lecturas, dashboard e ingreso de humedad |
+| AlertService | Spring Boot 4 y PostgreSQL | Reglas, alertas, eventos y correo |
 | AuditService | FastAPI y MongoDB | Bitácora y auditoría |
-| ReportService | FastAPI y MongoDB | PDF e historial de reportes |
+| ReportService | FastAPI y MongoDB | Generación e historial de PDF |
 
-Los proyectos de la API y autenticación anteriores ya no forman parte del sistema. La base histórica `SatRuralDb` y los scripts de migración se conservan para consultar o verificar los datos antiguos.
+```mermaid
+flowchart LR
+    U[Usuario] -->|HTTPS| T[Traefik Ingress]
+    T --> F[Frontend Angular / Nginx]
+    F --> G[Gateway YARP]
+    G --> AU[AuthService]
+    G --> C[CommunityService]
+    G --> S[SensorService]
+    G --> AL[AlertService]
+    G --> A[AuditService]
+    G --> R[ReportService]
+    AU --> P1[(PostgreSQL usuarios)]
+    C --> P2[(PostgreSQL comunidades)]
+    AL --> P3[(PostgreSQL alertas)]
+    S --> MS[(SQL Server sensores)]
+    A --> M[(MongoDB auditoría)]
+    R --> M2[(MongoDB reportes)]
+    S --> AL
+    AU --> A
+    C --> A
+    AL --> A
+    AL -->|SMTP Gmail| E[Correo de notificación]
+```
+
+## Despliegue
+
+La aplicación está desplegada en una VM de Google Cloud con K3s de un nodo. Kubernetes ejecuta los ocho servicios de aplicación, cinco bases de datos, almacenamiento persistente y Traefik. cert-manager obtiene y renueva el certificado TLS de Let's Encrypt; DuckDNS apunta el subdominio a la IPv4 estática de la VM. Solo el Ingress del frontend se publica en Internet; el Gateway y las bases permanecen dentro del clúster.
+
+```mermaid
+flowchart TB
+    D[DuckDNS<br/>sat-rural-desaweb.duckdns.org] --> IP[IPv4 estática de Google Cloud]
+    IP --> VM[VM Ubuntu 24.04]
+    VM --> K[K3s]
+    K --> T[Traefik Ingress :80 / :443]
+    CM[cert-manager + Let's Encrypt] -. certificado TLS .-> T
+    T --> F[Frontend]
+    F --> G[Gateway]
+    G --> S[Seis microservicios restantes]
+    S --> DB[(Cinco bases de datos<br/>con volúmenes persistentes)]
+```
+
+## Ingreso de lecturas de humedad
+
+El endpoint público está disponible para lecturas de humedad con el sensor registrado `HUM-001`:
+
+```http
+POST https://sat-rural-desaweb.duckdns.org/api/sensors/readings
+Content-Type: application/json
+X-Device-Key: <clave configurada para el dispositivo>
+
+{"sensorCode":"HUM-001","value":65}
+```
+
+La clave válida se define como `SENSOR_DEVICE_API_KEY` en `.env`; no debe incluirse en el código, README, capturas ni repositorio. El servicio valida la lectura, la guarda y la envía a evaluación de alertas.
+
+## Simulación
+
+La simulación global se inicia desde el Dashboard con **Ejecutar escenario** y se detiene con **Detener simulación**. En estado `NORMAL` no genera nuevas lecturas simuladas ni evaluaciones de alertas. Las lecturas históricas se conservan.
+
+## Correo y acceso social
+
+Para avisos por Gmail configura `GMAIL_USERNAME`, `GMAIL_APP_PASSWORD` y `ALERT_NOTIFICATIONS_RECIPIENTS` en `.env`. Se notifican activaciones o escalaciones de nivel; las lecturas repetidas que mantienen el mismo nivel no envían un correo nuevo.
+
+El acceso con Google o GitHub requiere sus Client ID y Client Secret. No publiques valores de `.env`.
 
 ## Ejecutar en localhost
 
-Necesitas Docker Desktop con Docker Compose. Desde la raíz del proyecto, copia `.env.example` a `.env` y completa los valores vacíos. `JWT_KEY` debe tener al menos 32 caracteres. Las claves de dispositivo, AlertService y AuditService deben ser valores diferentes y privados. No publiques `.env`.
+Requiere Docker Desktop con Docker Compose. Copia `.env.example` a `.env`, completa los valores privados y ejecuta desde la raíz:
 
 ```powershell
 Copy-Item .env.example .env
@@ -28,30 +97,9 @@ docker compose up -d --build
 docker compose ps
 ```
 
-La primera construcción puede tardar varios minutos. Abre `http://localhost:4200`. Los servicios Spring Boot y las bases pueden necesitar unos segundos adicionales antes de responder.
+Abre `http://localhost:4200`. El Gateway local está en `http://localhost:8081`. Para revisar registros usa `docker compose logs --tail=80 gateway`. Para detener los contenedores sin borrar datos, ejecuta `docker compose down`; no uses `docker compose down -v` si deseas conservar las bases y los PDF.
 
-Para revisar un servicio usa `docker compose logs --tail=80 gateway` y cambia `gateway` por su nombre. Para detener el sistema sin borrar datos usa `docker compose down`. No uses `docker compose down -v` si deseas conservar las bases y los PDF.
-
-## Direcciones locales
-
-| Servicio | Dirección |
-| --- | --- |
-| Frontend | `http://localhost:4200` |
-| Gateway | `http://localhost:8081` |
-| AuthService | `http://localhost:8086` |
-| CommunityService | `http://localhost:8083` |
-| SensorService | `http://localhost:8084` |
-| AlertService | `http://localhost:8085` |
-| AuditService | `http://localhost:8001` |
-| ReportService | `http://localhost:8000` |
-| SQL Server | `localhost:1433` |
-| PostgreSQL de alertas | `localhost:5433` |
-| PostgreSQL de usuarios | `localhost:5434` |
-| MongoDB | `localhost:27017` |
-
-PostgreSQL de comunidades solo está disponible en la red de Compose. El frontend usa el Gateway para acceder a los servicios.
-
-## Comprobar el arranque
+## Verificación local
 
 ```powershell
 Invoke-RestMethod http://localhost:8081/health
@@ -60,43 +108,4 @@ Invoke-RestMethod http://localhost:8084/health
 Invoke-RestMethod http://localhost:8085/actuator/health
 ```
 
-`/api/auth/login` y `/api/auth/me` gestionan el acceso. Los datos del panel salen de `/api/monitoring/dashboard`, `/api/sensors`, `/api/sensor-readings` y `/api/alerts`. Las rutas de datos requieren JWT. El ingreso de lecturas de humedad por `POST /api/sensors/readings` exige `X-Device-Key` y está preparado para el ESP32 con DHT11; la conexión física se realizará después. Los demás sensores se simulan cada cinco segundos.
-
-El sistema permite consultar reportes de comunidades, sensores, lecturas, alertas, eventos, estado de sensores, estadísticas climáticas y resumen ejecutivo. El reporte de lecturas requiere un rango de fechas. Los tres roles `ADMIN`, `OPERATOR` y `VIEWER` pueden descargar PDF.
-
-## Cuenta existente de demostración
-
-En la base migrada del proyecto existe `adminangi@gmail.com` con rol `ADMIN`. Usa la contraseña habitual de esa cuenta. La migración conserva el hash de contraseña, así que reconstruir contenedores no la restablece. En una base nueva, el registro público crea usuarios `VIEWER`; la cuenta administradora existente debe migrarse antes de usarla.
-
-## Migrar una instalación anterior
-
-Estos comandos son para una instalación que ya tiene datos en la API anterior. Conservan usuarios, comunidades, sensores, reglas, alertas, eventos y auditoría. La migración de sensores conserva las lecturas nuevas y descarta las lecturas simuladas copiadas desde la base antigua. Ejecuta los pasos desde la raíz y revisa los conteos antes de activar el nuevo Gateway:
-
-```powershell
-docker stop sat-rural-api sat-rural-auth-service
-docker compose run --rm --build auth-migrate
-docker compose run --rm sensor-migrate
-docker compose run --rm data-migrate
-docker compose run --rm audit-migrate
-docker compose run --rm verify-migration
-docker compose up -d --build
-```
-
-No ejecutes la migración contra bases de otro proyecto. Las bases y los archivos de reportes están guardados en volúmenes de Docker.
-
-## Correo y acceso externo
-
-Para avisos de alertas, define en `.env` `GMAIL_USERNAME`, `GMAIL_APP_PASSWORD` y `ALERT_NOTIFICATIONS_RECIPIENTS`. El correo se envía al activarse o escalar una alerta YELLOW, ORANGE o RED. No se reenvía por cada lectura que mantiene el mismo nivel.
-
-Google y GitHub necesitan sus Client ID y Client Secret en `.env`. Sin esas credenciales, el inicio de sesión con contraseña sigue disponible. No incluyas credenciales reales en capturas, documentación ni control de versiones.
-
-## Desarrollo
-
-```powershell
-dotnet build .\backend\SatRural.slnx
-Set-Location .\frontend
-npm ci
-npm start
-```
-
-AlertService se compila con `mvnw.cmd package` desde `backend/SatRural.AlertService`. La ejecución completa y las bases se gestionan con Docker Compose.
+Las credenciales de Google/GitHub, claves de dispositivo, secretos JWT y contraseñas de base de datos son configuración privada y no deben guardarse en este archivo.

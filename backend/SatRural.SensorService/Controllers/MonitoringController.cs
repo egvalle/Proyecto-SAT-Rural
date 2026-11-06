@@ -144,7 +144,13 @@ public sealed class MonitoringController : ControllerBase
             .SingleAsync(item => item.Id == 1, cancellationToken);
         setting.Scenario = scenario;
         await _db.SaveChangesAsync(cancellationToken);
-        return Ok(new { scenario, message = "Escenario activado correctamente." });
+        return Ok(new
+        {
+            scenario,
+            message = scenario == "NORMAL"
+                ? "Simulación detenida."
+                : "Escenario activado correctamente."
+        });
     }
 
     [HttpPost("simulation/reset")]
@@ -155,7 +161,7 @@ public sealed class MonitoringController : ControllerBase
             .SingleAsync(item => item.Id == 1, cancellationToken);
         setting.Scenario = "NORMAL";
         await _db.SaveChangesAsync(cancellationToken);
-        return Ok(new { scenario = "NORMAL", message = "Simulación reiniciada." });
+        return Ok(new { scenario = "NORMAL", message = "Simulación detenida." });
     }
 
     [HttpPatch("simulation/sensors/{sensorId:int}")]

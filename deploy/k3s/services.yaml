@@ -1,0 +1,630 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-next
+  namespace: sat-rural
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-next
+  template:
+    metadata:
+      labels:
+        app: auth-next
+    spec:
+      containers:
+        - name: auth-next
+          image: sat-rural/auth-next:deploy
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: AUTH_DB_HOST
+              value: auth-db
+            - name: AUTH_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: AUTH_DB_PASSWORD
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: JWT_KEY
+            - name: JWT_ISSUER
+              value: SatRural.Api
+            - name: JWT_AUDIENCE
+              value: SatRural.Client
+            - name: JWT_EXPIRES_MINUTES
+              value: "60"
+            - name: FRONTEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: sat-rural-config
+                  key: PUBLIC_URL
+            - name: OAUTH_CALLBACK_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: sat-rural-config
+                  key: PUBLIC_URL
+            - name: AUDIT_SERVICE_URL
+              value: http://audit-service:8000/
+            - name: AUDIT_SERVICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: AUDIT_SERVICE_API_KEY
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: GOOGLE_CLIENT_ID
+                  optional: true
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: GOOGLE_CLIENT_SECRET
+                  optional: true
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: GITHUB_CLIENT_ID
+                  optional: true
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: GITHUB_CLIENT_SECRET
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 128Mi
+            limits:
+              memory: 768Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-next
+  namespace: sat-rural
+spec:
+  selector:
+    app: auth-next
+  ports:
+    - port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-service
+  namespace: sat-rural
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: audit-service
+  template:
+    metadata:
+      labels:
+        app: audit-service
+    spec:
+      containers:
+        - name: audit-service
+          image: sat-rural/audit-service:deploy
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MONGO_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: MONGO_ROOT_USERNAME
+            - name: MONGO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: MONGO_ROOT_PASSWORD
+            - name: MONGO_URI
+              value: mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongodb:27017/?authSource=admin
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: JWT_KEY
+            - name: JWT_ISSUER
+              value: SatRural.Api
+            - name: JWT_AUDIENCE
+              value: SatRural.Client
+            - name: AUDIT_SERVICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: AUDIT_SERVICE_API_KEY
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 128Mi
+            limits:
+              memory: 768Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: audit-service
+  namespace: sat-rural
+spec:
+  selector:
+    app: audit-service
+  ports:
+    - port: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: report-service
+  namespace: sat-rural
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: report-service
+  template:
+    metadata:
+      labels:
+        app: report-service
+    spec:
+      containers:
+        - name: report-service
+          image: sat-rural/report-service:deploy
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8000
+          env:
+            - name: MONGO_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: MONGO_ROOT_USERNAME
+            - name: MONGO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: MONGO_ROOT_PASSWORD
+            - name: MONGO_URI
+              value: mongodb://$(MONGO_ROOT_USERNAME):$(MONGO_ROOT_PASSWORD)@mongodb:27017/?authSource=admin
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: JWT_KEY
+            - name: JWT_ISSUER
+              value: SatRural.Api
+            - name: JWT_AUDIENCE
+              value: SatRural.Client
+            - name: REPORT_DATA_API_URL
+              value: http://gateway:8080
+            - name: ALERTS_API_URL
+              value: http://alert-service:8080/api/alerts
+            - name: REPORT_STORAGE_PATH
+              value: /app/storage
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: storage
+              mountPath: /app/storage
+          resources:
+            requests:
+              memory: 128Mi
+            limits:
+              memory: 1Gi
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: report-files
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: report-service
+  namespace: sat-rural
+spec:
+  selector:
+    app: report-service
+  ports:
+    - port: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: sat-rural
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: sat-rural/gateway:deploy
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: ReverseProxy__Clusters__auth-next__Destinations__destination1__Address
+              value: http://auth-next:8080/
+            - name: ReverseProxy__Clusters__community-service__Destinations__destination1__Address
+              value: http://community-service:8080/
+            - name: ReverseProxy__Clusters__report-service__Destinations__destination1__Address
+              value: http://report-service:8000/
+            - name: ReverseProxy__Clusters__sensor-service__Destinations__destination1__Address
+              value: http://sensor-service:8080/
+            - name: ReverseProxy__Clusters__alert-service__Destinations__destination1__Address
+              value: http://alert-service:8080/
+            - name: ReverseProxy__Clusters__audit-service__Destinations__destination1__Address
+              value: http://audit-service:8000/
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: JWT_KEY
+            - name: Jwt__Issuer
+              value: SatRural.Api
+            - name: Jwt__Audience
+              value: SatRural.Client
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 128Mi
+            limits:
+              memory: 768Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: sat-rural
+spec:
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: sat-rural
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: sat-rural/frontend:deploy
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: sat-rural
+spec:
+  selector:
+    app: frontend
+  ports:
+    - port: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-service
+  namespace: sat-rural
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: community-service
+  template:
+    metadata:
+      labels:
+        app: community-service
+    spec:
+      containers:
+        - name: community-service
+          image: sat-rural/community-service:deploy
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: COMMUNITY_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: COMMUNITY_DB_USER
+            - name: COMMUNITY_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: COMMUNITY_DB_PASSWORD
+            - name: ConnectionStrings__CommunityDatabase
+              value: Host=community-db;Port=5432;Database=satrural_community;Username=$(COMMUNITY_DB_USER);Password=$(COMMUNITY_DB_PASSWORD)
+            - name: AuditService__BaseUrl
+              value: http://audit-service:8000/
+            - name: AuditService__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: AUDIT_SERVICE_API_KEY
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: JWT_KEY
+            - name: Jwt__Issuer
+              value: SatRural.Api
+            - name: Jwt__Audience
+              value: SatRural.Client
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 128Mi
+            limits:
+              memory: 768Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: community-service
+  namespace: sat-rural
+spec:
+  selector:
+    app: community-service
+  ports:
+    - port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alert-service
+  namespace: sat-rural
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alert-service
+  template:
+    metadata:
+      labels:
+        app: alert-service
+    spec:
+      containers:
+        - name: alert-service
+          image: sat-rural/alert-service:deploy
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://alert-db:5432/satrural_alerts
+            - name: SPRING_DATASOURCE_USERNAME
+              value: satrural_alerts
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: ALERT_DB_PASSWORD
+            - name: ALERT_SERVICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: ALERT_SERVICE_API_KEY
+            - name: JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: JWT_KEY
+            - name: JWT_ISSUER
+              value: SatRural.Api
+            - name: JWT_AUDIENCE
+              value: SatRural.Client
+            - name: SERVER_PORT
+              value: "8080"
+            - name: AUDIT_SERVICE_BASE_URL
+              value: http://audit-service:8000
+            - name: AUDIT_SERVICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: AUDIT_SERVICE_API_KEY
+            - name: GMAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: GMAIL_USERNAME
+            - name: GMAIL_APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: GMAIL_APP_PASSWORD
+            - name: ALERT_NOTIFICATIONS_RECIPIENTS
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: ALERT_NOTIFICATIONS_RECIPIENTS
+            - name: JAVA_TOOL_OPTIONS
+              value: -XX:MaxRAMPercentage=65
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 384Mi
+            limits:
+              memory: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alert-service
+  namespace: sat-rural
+spec:
+  selector:
+    app: alert-service
+  ports:
+    - port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-service
+  namespace: sat-rural
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sensor-service
+  template:
+    metadata:
+      labels:
+        app: sensor-service
+    spec:
+      containers:
+        - name: sensor-service
+          image: sat-rural/sensor-service:deploy
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: MSSQL_SA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: MSSQL_SA_PASSWORD
+            - name: ConnectionStrings__SensorDatabase
+              value: Server=sqlserver,1433;Database=satrural_sensors;User Id=sa;Password=$(MSSQL_SA_PASSWORD);TrustServerCertificate=True;Encrypt=False
+            - name: SensorIngestion__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: SENSOR_DEVICE_API_KEY
+            - name: Simulation__Enabled
+              value: "true"
+            - name: Jwt__Key
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: JWT_KEY
+            - name: Jwt__Issuer
+              value: SatRural.Api
+            - name: Jwt__Audience
+              value: SatRural.Client
+            - name: AlertService__BaseUrl
+              value: http://alert-service:8080/
+            - name: AlertService__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: ALERT_SERVICE_API_KEY
+            - name: CommunityService__BaseUrl
+              value: http://community-service:8080/
+            - name: AuditService__BaseUrl
+              value: http://audit-service:8000/
+            - name: AuditService__ApiKey
+              valueFrom:
+                secretKeyRef:
+                  name: sat-rural-env
+                  key: AUDIT_SERVICE_API_KEY
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: 256Mi
+            limits:
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sensor-service
+  namespace: sat-rural
+spec:
+  selector:
+    app: sensor-service
+  ports:
+    - port: 8080

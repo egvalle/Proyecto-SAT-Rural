@@ -24,3 +24,15 @@
 # OS
 .DS_Store
 Thumbs.db
+
+# Paquetes y respaldos de despliegue
+*.tar.gz
+*.tgz
+*.bak
+*.dump
+*.archive
+*.archive.gz
+deploy-backups/
+
+# Reportes PDF generados
+/reporte-*.pdf

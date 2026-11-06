@@ -57,6 +57,8 @@ public sealed class SensorSimulationService : BackgroundService
             .Where(item => item.Id == 1)
             .Select(item => item.Scenario)
             .FirstAsync(cancellationToken);
+        if (scenario == "NORMAL") return;
+
         var sensors = await db.Sensors
             .Where(item => item.IsActive && item.Source != "REAL")
             .ToListAsync(cancellationToken);
